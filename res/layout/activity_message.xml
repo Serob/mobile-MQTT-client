@@ -1,0 +1,124 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#EEEEEE"
+    tools:context="${relativePackage}.${activityClass}"
+    android:animateLayoutChanges="true">
+
+    <TextView
+        android:id="@+id/textView1"
+        android:layout_width="fill_parent"
+        android:layout_height="50dp"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentTop="true"
+        android:background="#DDDDDD"
+        android:fontFamily="Roboto"
+        android:gravity="center"
+        android:text="Friend name"
+        android:textColor="#51A1C2"
+        android:textSize="30sp" />
+
+    <LinearLayout
+        android:id="@+id/linearLayout2"
+        android:layout_width="wrap_content"
+        android:layout_height="350dp"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentRight="true"
+        android:background="#CCCCCC" >
+
+        <ImageButton
+            android:id="@+id/imageButton1"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="0dp"
+            android:contentDescription="Image1"
+            android:src="@drawable/image_1" />
+
+        <ImageButton
+            android:id="@+id/imageButton2"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="0dp"
+            android:contentDescription="Image2"
+            android:src="@drawable/image_2" />
+
+        <ImageButton
+            android:id="@+id/imageButton3"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="0dp"
+            android:contentDescription="Image3"
+            android:src="@drawable/image_3" />
+
+        <ImageButton
+            android:id="@+id/imageButton4"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="0dp"
+            android:contentDescription="Image4"
+            android:src="@drawable/image_4" />
+    </LinearLayout>
+
+	<RelativeLayout
+	    android:id="@+id/relativeLayout1"
+	    android:layout_width="fill_parent"
+	    android:layout_height="100dp"
+	    android:layout_above="@+id/linearLayout2"
+	    android:layout_alignParentLeft="true"
+	    android:background="#22DD33">
+		
+		<LinearLayout
+		    android:id="@+id/linearLayout1"
+		    android:layout_width="fill_parent"
+		    android:layout_height="100dp"
+		    android:layout_alignParentLeft="true"
+		    android:orientation="horizontal" >
+		</LinearLayout>
+		  
+	    <ImageButton
+	        android:id="@+id/send"
+	        android:layout_width="75dp"
+	        android:layout_height="50dp"
+	        android:layout_alignParentTop="true"
+	        android:layout_alignParentRight="true"	        
+	        android:gravity="right"
+	        android:src="@drawable/send"
+	        android:onClick="sendMessage"
+	        android:text="Send" />
+
+	    <ImageButton
+	        android:id="@+id/back"
+	        android:layout_width="75dp"
+	        android:layout_height="50dp"
+	        android:layout_alignParentRight="true"
+	        android:layout_alignParentBottom="true"
+	        android:gravity="right"
+	        android:onClick="backButton"
+	        android:src="@drawable/back"
+	        android:text="Back" />
+	    
+	    
+	</RelativeLayout>
+
+	<ScrollView
+	    android:id="@+id/scrollView1"
+	    android:layout_width="match_parent"
+	    android:layout_height="200dp"
+	    android:layout_alignParentLeft="true"
+	    android:layout_below="@+id/textView1"
+	    android:scrollY="200dp" 
+	    android:stackFromBottom="true"
+		android:transcriptMode="alwaysScroll">
+
+	    <LinearLayout
+	        android:id="@+id/messageHistory"
+	        android:layout_width="match_parent"
+	        android:layout_height="200dp"
+	        android:orientation="vertical" >
+	    </LinearLayout>
+	    	
+	</ScrollView>
+
+</RelativeLayout>
