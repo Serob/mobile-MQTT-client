@@ -10,6 +10,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import com.spb.sezam.utils.ActivityUtil;
+import com.vk.sdk.api.VKApi;
 import com.vk.sdk.api.VKError;
 import com.vk.sdk.api.VKParameters;
 import com.vk.sdk.api.VKRequest;
@@ -18,6 +19,8 @@ import com.vk.sdk.api.VKResponse;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.graphics.Color;
+import android.graphics.Typeface;
 import android.os.Bundle;
 import android.os.Handler;
 import android.view.View;
@@ -31,7 +34,7 @@ import android.widget.LinearLayout;
 
 public class MessageActivity extends Activity implements OnClickListener{
 
-	public static final String APP_SEPARATOR_MESSAGE = "SentFromSezam: ";
+	public static final String ICON_SPLIT_SYMBOLS = "|_";
 	
 	private List<String> messageToSend = new ArrayList<String>();
 	private JSONArray allMessages = new JSONArray();
@@ -42,11 +45,11 @@ public class MessageActivity extends Activity implements OnClickListener{
 
 		@Override
 		public void onComplete(VKResponse response) {
-			LinearLayout formLayout = (LinearLayout)findViewById(R.id.linearLayout1);
-	        formLayout.removeAllViews();
-	        messageToSend.clear();
-	        Toast showSent = Toast.makeText(getApplicationContext(), "—ообщение отправлено", Toast.LENGTH_SHORT);      
-	        showSent.show();
+			LinearLayout formLayout = (LinearLayout) findViewById(R.id.linearLayout1);
+			formLayout.removeAllViews();
+			messageToSend.clear();
+			Toast showSent = Toast.makeText(getApplicationContext(), "—ообщение отправлено", Toast.LENGTH_SHORT);
+			showSent.show();
 		}
 
 		@Override
@@ -60,12 +63,13 @@ public class MessageActivity extends Activity implements OnClickListener{
 
 		@Override
 		public void onComplete(VKResponse response) {    
-	        List<String[]> ourMessages = null; 
+	        //List<String[]> ourMessages = null; 
 	        try {
 	        	JSONArray messages = response.json.getJSONObject("response").getJSONArray("items");
-	        	ourMessages = filterMessages(messages, true);
+	        	//ourMessages = filterMessages(messages, true);
 	        	//show images
-	            decodeTextToImages(ourMessages);
+	            //decodeTextToImages(ourMessages);
+	        	showHistory(messages);
 	            //must be only when Activity starts
 	            scorllDown((ScrollView)findViewById(R.id.scrollView1));
 	            //
@@ -80,7 +84,7 @@ public class MessageActivity extends Activity implements OnClickListener{
 		}
 	};
 	
-	public List<String[]> filterMessages(JSONArray messages, boolean incomeOnly) throws JSONException{
+	/*public List<String[]> filterMessages(JSONArray messages, boolean incomeOnly) throws JSONException{
 		String message = null;
 		List<String[]> ourMessages = new ArrayList<String[]>();
 		JSONObject messageJson = null;
@@ -105,7 +109,84 @@ public class MessageActivity extends Activity implements OnClickListener{
 	
 	public List<String[]> filterMessages(JSONArray messages) throws JSONException{
 		return filterMessages(messages, false);
+	}*/
+	
+	public void showHistory(JSONArray messages) throws JSONException{
+		String messageString = null;
+		JSONObject messageJson = null;
+		String[] messageArr = null;
+		LinearLayout historyLayout = (LinearLayout)findViewById(R.id.messageHistory);
+		
+		for(int i=messages.length() - 1; i >= 0; i-- ){
+			messageJson = messages.getJSONObject(i);
+			TextView nameView = new TextView(MessageActivity.this);
+			if(messageJson.getInt("out") == 1){
+				nameView.setText("¬ы");
+				nameView.setTextColor(Color.BLACK);
+			} else {
+				nameView.setText(activeFriendName);
+				nameView.setTextColor(Color.BLUE);
+			}
+			nameView.setTypeface(null, Typeface.BOLD);
+			historyLayout.addView(nameView);
+			
+			messageString = messageJson.getString("body").trim();
+			messageArr =  messageString.split("\\" + ICON_SPLIT_SYMBOLS);
+			
+			LinearLayout linearLayout = new LinearLayout(MessageActivity.this);
+			historyLayout.addView(linearLayout);
+			
+			//Analyze message parts
+			for(String text : messageArr){
+				showTextWithImages(text, linearLayout);
+			}
+		}
 	}
+	
+	/**
+	 * Shows text into the history layout as it is. Should be called if there is no info about image icon in the text.
+	 * @param text Text to be shown
+	 * @param lLayout {@link TextView} with {@code 'text'} parameter will be added to this layout
+	 */
+	private void showTextAsString(String text, LinearLayout lLayout) {
+		//if there is no info about image icon in the text
+		
+		if(text == null || "".equals(text)){
+			return;
+		}
+		
+		TextView textView = new TextView(MessageActivity.this);
+		textView.setText(text);
+		lLayout.addView(textView);
+	}
+	
+	private void showTextWithImages(String text, LinearLayout lLayout){
+		if(text == null || "".equals(text)){
+			return;
+		}
+		
+		ImageView image = new ImageView(MessageActivity.this);
+		
+		if("чувствовать".equals(text)){
+			image.setBackgroundResource(R.drawable.image_1_thumb);
+		} else if("€".equals(text)){
+			image.setBackgroundResource(R.drawable.image_2_thumb);
+		} else if("хорошо".equals(text)){
+			image.setBackgroundResource(R.drawable.image_3_thumb);
+		} else if("чувствовать себ€".equals(text)){
+			image.setBackgroundResource(R.drawable.image_4_thumb);
+		//none of words
+		} else{
+			showTextAsString(text, lLayout);
+			return;
+		}
+		
+		//if icon name is found
+		lLayout.addView(image);
+		
+	}
+	
+	
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -155,7 +236,7 @@ public class MessageActivity extends Activity implements OnClickListener{
 	
 	public void sendMessage(View v){
 		if(messageToSend.size() > 0){
-	        StringBuilder messageString = new StringBuilder(APP_SEPARATOR_MESSAGE);
+	        StringBuilder messageString = new StringBuilder();
 	        for(String msg : messageToSend){
 	        	messageString.append(msg);
 	        }
@@ -163,10 +244,17 @@ public class MessageActivity extends Activity implements OnClickListener{
 	        				String.valueOf(activeFriendId), "message", messageString.toString()));
 			request.executeWithListener(messageSendListener);
 		}
+		
+		//test for picture
+		
+		 //VKApi.uploadWallPhotoRequest(image, userId, groupId)
+		 
+		VKRequest request = new VKRequest("photos.getMessagesUploadServer");
+		request.executeWithListener(messageSendListener);
 	}
 	
 	public void recieveMessage(){
-		VKRequest request = new VKRequest("messages.getHistory", VKParameters.from("user_id", activeFriendId, "count", 15));
+		VKRequest request = new VKRequest("messages.getHistory", VKParameters.from("user_id", activeFriendId, "count", 50));
 		request.executeWithListener(messageRecieveListener);
 	}
 	
@@ -177,25 +265,25 @@ public class MessageActivity extends Activity implements OnClickListener{
 		switch (v.getId()) {
 
 		case R.id.imageButton1:
-			messageToSend.add("чувствовать,");
+			addImageToSendMessages("чувствовать");
 	        image.setBackgroundResource(R.drawable.image_1_thumb);
 	        piktogram.addView(image);
 			break;
 
 		case R.id.imageButton2:
-			messageToSend.add("€,");
+			addImageToSendMessages("€");
 	        image.setBackgroundResource(R.drawable.image_2_thumb);
 	        piktogram.addView(image);
 			break;
 
 		case R.id.imageButton3:
-			messageToSend.add("хорошо,");
+			addImageToSendMessages("хорошо");
 	        image.setBackgroundResource(R.drawable.image_3_thumb);
 	        piktogram.addView(image);
 			break;
 
-		case R.id.imageButton4:			
-			messageToSend.add("чувствовать себ€,");
+		case R.id.imageButton4:
+			addImageToSendMessages("чувствовать себ€");
 	        image.setBackgroundResource(R.drawable.image_4_thumb);
 	        piktogram.addView(image);
 			break;
@@ -205,32 +293,8 @@ public class MessageActivity extends Activity implements OnClickListener{
 		}
 	}
 	
-	private void decodeTextToImages(List<String[]> messages){
-		LinearLayout historyLayout = (LinearLayout)findViewById(R.id.messageHistory);
-		String[] message = null;
-		for(int i = messages.size() - 1; i >= 0; i--){
-			message = messages.get(i);
-			LinearLayout innerLayout = new LinearLayout(MessageActivity.this);
-			historyLayout.addView(innerLayout);
-			
-			//tufta mas
-			ImageView image = null;
-			for(String word : message){
-				image = new ImageView(MessageActivity.this);
-				if("чувствовать".equals(word)){
-					image.setBackgroundResource(R.drawable.image_1_thumb);
-				} else if("€".equals(word)){
-					image.setBackgroundResource(R.drawable.image_2_thumb);
-				} else if("хорошо".equals(word)){
-					image.setBackgroundResource(R.drawable.image_3_thumb);
-				} else if("чувствовать себ€".equals(word)){
-					image.setBackgroundResource(R.drawable.image_4_thumb);
-				}
-				innerLayout.addView(image);
-			}
-			//
-		}
-		
+	private void addImageToSendMessages(String imageName){
+		messageToSend.add(ICON_SPLIT_SYMBOLS + imageName + ICON_SPLIT_SYMBOLS);
 	}
 
 	private void scorllDown(final ScrollView view) {
@@ -245,7 +309,7 @@ public class MessageActivity extends Activity implements OnClickListener{
 	@Override
 	protected void onResume() {
 		super.onResume();
-		recieveMessagePeriodicly();
+		recieveMessage();
 	}
 	
 	private void removeMessageHistory(){
@@ -274,4 +338,32 @@ public class MessageActivity extends Activity implements OnClickListener{
 		
 		handler.post(r);
 	}
+	
+	/*private void decodeTextToImages(List<String[]> messages){
+	LinearLayout historyLayout = (LinearLayout)findViewById(R.id.messageHistory);
+	String[] message = null;
+	for(int i = messages.size() - 1; i >= 0; i--){
+		message = messages.get(i);
+		LinearLayout innerLayout = new LinearLayout(MessageActivity.this);
+		historyLayout.addView(innerLayout);
+		
+		//tufta mas
+		ImageView image = null;
+		for(String word : message){
+			image = new ImageView(MessageActivity.this); 
+			if("чувствовать".equals(word)){
+				image.setBackgroundResource(R.drawable.image_1_thumb);
+			} else if("€".equals(word)){
+				image.setBackgroundResource(R.drawable.image_2_thumb);
+			} else if("хорошо".equals(word)){
+				image.setBackgroundResource(R.drawable.image_3_thumb);
+			} else if("чувствовать себ€".equals(word)){
+				image.setBackgroundResource(R.drawable.image_4_thumb);
+			}
+			innerLayout.addView(image);
+		}
+		//
+	}
+}*/
+	
 }
