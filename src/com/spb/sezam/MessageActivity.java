@@ -41,6 +41,9 @@ public class MessageActivity extends Activity implements OnClickListener{
 	private String activeFriendName = null;
 	private int activeFriendId;
 	
+	private Runnable recieveMessagesRunnable = null;
+	private final Handler recieveMessagesHandler = new Handler();
+	
 	private VKRequestListener messageSendListener  = new VKRequestListener(){
 
 		@Override
@@ -50,6 +53,7 @@ public class MessageActivity extends Activity implements OnClickListener{
 			messageToSend.clear();
 			Toast showSent = Toast.makeText(getApplicationContext(), "Сообщение отправлено", Toast.LENGTH_SHORT);
 			showSent.show();
+			recieveMessageHistory(10);
 		}
 
 		@Override
@@ -69,9 +73,19 @@ public class MessageActivity extends Activity implements OnClickListener{
 	        	//ourMessages = filterMessages(messages, true);
 	        	//show images
 	            //decodeTextToImages(ourMessages);
-	        	showHistory(messages);
+	        	
 	            //must be only when Activity starts
-	            scorllDown((ScrollView)findViewById(R.id.scrollView1));
+	        	
+	        	JSONArray newMessages = findNewMessages(allMessages, messages);
+	        	if(newMessages.length() != 0){
+		            showHistory(newMessages);
+		            scorllDown((ScrollView)findViewById(R.id.scrollView1));
+		            if(isThereRecieved(newMessages) && newMessages != messages){
+		            	Toast showSent = Toast.makeText(getApplicationContext(), "Получено новое сообщение", Toast.LENGTH_SHORT);
+		    			showSent.show();
+		            }
+	        	}
+	            allMessages = messages;
 	            //
 			} catch (JSONException e) {
 				e.printStackTrace();
@@ -84,44 +98,17 @@ public class MessageActivity extends Activity implements OnClickListener{
 		}
 	};
 	
-	/*public List<String[]> filterMessages(JSONArray messages, boolean incomeOnly) throws JSONException{
-		String message = null;
-		List<String[]> ourMessages = new ArrayList<String[]>();
-		JSONObject messageJson = null;
-		
-		for(int i=0; i < messages.length(); i++ ){
-			messageJson = messages.getJSONObject(i);
-			int out = messageJson.getInt("out");
-			
-			if(incomeOnly && out == 1){
-				continue;
-			}
-			
-			message =  messageJson.getString("body").trim();
-			if(message.startsWith(APP_SEPARATOR_MESSAGE)){
-				message = message.replace(APP_SEPARATOR_MESSAGE, "");
-				String[] messageArr =  message.split(",");
-				ourMessages.add(messageArr);
-			}
-		}
-		return ourMessages;
-	}
-	
-	public List<String[]> filterMessages(JSONArray messages) throws JSONException{
-		return filterMessages(messages, false);
-	}*/
-	
 	public void showHistory(JSONArray messages) throws JSONException{
 		String messageString = null;
 		JSONObject messageJson = null;
 		String[] messageArr = null;
 		LinearLayout historyLayout = (LinearLayout)findViewById(R.id.messageHistory);
 		
-		for(int i=messages.length() - 1; i >= 0; i-- ){
+		for (int i = messages.length() - 1; i >= 0; i--) {
 			messageJson = messages.getJSONObject(i);
 			TextView nameView = new TextView(MessageActivity.this);
 			if(messageJson.getInt("out") == 1){
-				nameView.setText("Вы");
+				nameView.setText("Я");
 				nameView.setTextColor(Color.BLACK);
 			} else {
 				nameView.setText(activeFriendName);
@@ -253,8 +240,12 @@ public class MessageActivity extends Activity implements OnClickListener{
 		request.executeWithListener(messageSendListener);
 	}
 	
-	public void recieveMessage(){
-		VKRequest request = new VKRequest("messages.getHistory", VKParameters.from("user_id", activeFriendId, "count", 50));
+	//messageCount must be used in real later(the idea is to load more messages at first, then less)
+	public void recieveMessageHistory(int messagesCount){
+		if(messagesCount <= 0){
+			messagesCount = 1;
+		}
+		VKRequest request = new VKRequest("messages.getHistory", VKParameters.from("user_id", activeFriendId, "count", messagesCount));
 		request.executeWithListener(messageRecieveListener);
 	}
 	
@@ -265,25 +256,25 @@ public class MessageActivity extends Activity implements OnClickListener{
 		switch (v.getId()) {
 
 		case R.id.imageButton1:
-			addImageToSendMessages("чувствовать");
+			addImageNameToSendMessages("чувствовать");
 	        image.setBackgroundResource(R.drawable.image_1_thumb);
 	        piktogram.addView(image);
 			break;
 
 		case R.id.imageButton2:
-			addImageToSendMessages("я");
+			addImageNameToSendMessages("я");
 	        image.setBackgroundResource(R.drawable.image_2_thumb);
 	        piktogram.addView(image);
 			break;
 
 		case R.id.imageButton3:
-			addImageToSendMessages("хорошо");
+			addImageNameToSendMessages("хорошо");
 	        image.setBackgroundResource(R.drawable.image_3_thumb);
 	        piktogram.addView(image);
 			break;
 
 		case R.id.imageButton4:
-			addImageToSendMessages("чувствовать себя");
+			addImageNameToSendMessages("чувствовать себя");
 	        image.setBackgroundResource(R.drawable.image_4_thumb);
 	        piktogram.addView(image);
 			break;
@@ -293,7 +284,7 @@ public class MessageActivity extends Activity implements OnClickListener{
 		}
 	}
 	
-	private void addImageToSendMessages(String imageName){
+	private void addImageNameToSendMessages(String imageName){
 		messageToSend.add(ICON_SPLIT_SYMBOLS + imageName + ICON_SPLIT_SYMBOLS);
 	}
 
@@ -309,34 +300,70 @@ public class MessageActivity extends Activity implements OnClickListener{
 	@Override
 	protected void onResume() {
 		super.onResume();
-		recieveMessage();
+		recieveMessagePeriodicly();
 	}
 	
+	@Override
+	protected void onPause() {
+		super.onPause();
+		if(recieveMessagesHandler != null){
+			recieveMessagesHandler.removeCallbacks(recieveMessagesRunnable);
+		}
+	}
+
 	private void removeMessageHistory(){
 		LinearLayout historyLayout = (LinearLayout)findViewById(R.id.messageHistory);
 		historyLayout.removeAllViews();
 	}
 	
-	private void recieveMessagePeriodicly2() {
-		new Timer().schedule(new TimerTask() {
-			public void run() {
-				removeMessageHistory();
-				recieveMessage();
-			}
-		}, 0, 2000);
-	}
-	
 	private void recieveMessagePeriodicly() {
-		final Handler handler = new Handler();
-		Runnable r = new Runnable() {
+		recieveMessagesRunnable = new Runnable() {
 			public void run() {
-				removeMessageHistory();
-				recieveMessage();
-				handler.postDelayed(this, 5000);
+				recieveMessageHistory(50);
+				recieveMessagesHandler.postDelayed(this, 5000);
 			}
 		};
 		
-		handler.post(r);
+		recieveMessagesHandler.post(recieveMessagesRunnable);
+	}
+	
+	public JSONArray findNewMessages(JSONArray oldList, JSONArray newList) throws JSONException{
+		if(newList == null || newList.length() == 0){
+			return new JSONArray();
+		}
+		if(oldList == null || oldList.length() == 0){
+			return newList;
+		}
+		
+		//need to find oldList[0] in newList
+		JSONArray onlyNew = new JSONArray();
+		for(int i = 0; i < newList.length(); i++){
+			//we believe in VK API that every message should have its unique id...
+			JSONObject messageInNew = newList.getJSONObject(i);
+			if(messageInNew.getInt("id") == oldList.getJSONObject(0).getInt("id")){
+				break;
+			} else {
+				onlyNew.put(messageInNew);
+			}
+		}
+		return onlyNew;
+	}
+	
+	/**
+	 * Returns {@code true} if there is any received message in the list, otherwise returns {@code false} 
+	 * @param messages The list of messages to be check
+	 * @return {@code booelan}
+	 * @throws JSONException
+	 */
+	private boolean isThereRecieved(JSONArray messages) throws JSONException{
+		JSONObject message = null;
+		for (int i = 0; i < messages.length(); i++) {
+			message = messages.getJSONObject(i);
+			if(message.getInt("out") == 0){
+				return true;
+			}
+		}
+		return false;
 	}
 	
 	/*private void decodeTextToImages(List<String[]> messages){
@@ -364,6 +391,33 @@ public class MessageActivity extends Activity implements OnClickListener{
 		}
 		//
 	}
+}*/
+	
+	/*public List<String[]> filterMessages(JSONArray messages, boolean incomeOnly) throws JSONException{
+	String message = null;
+	List<String[]> ourMessages = new ArrayList<String[]>();
+	JSONObject messageJson = null;
+	
+	for(int i=0; i < messages.length(); i++ ){
+		messageJson = messages.getJSONObject(i);
+		int out = messageJson.getInt("out");
+		
+		if(incomeOnly && out == 1){
+			continue;
+		}
+		
+		message =  messageJson.getString("body").trim();
+		if(message.startsWith(APP_SEPARATOR_MESSAGE)){
+			message = message.replace(APP_SEPARATOR_MESSAGE, "");
+			String[] messageArr =  message.split(",");
+			ourMessages.add(messageArr);
+		}
+	}
+	return ourMessages;
+}
+
+public List<String[]> filterMessages(JSONArray messages) throws JSONException{
+	return filterMessages(messages, false);
 }*/
 	
 }

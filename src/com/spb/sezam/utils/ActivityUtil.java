@@ -19,7 +19,7 @@ public class ActivityUtil {
         showError(context, message);
 
         if (error.httpError != null) {
-            Log.w("Test", "Error in request or upload", error.httpError);
+            Log.w("Test", "Error in request or upload: " + error.httpError.getMessage(), error.httpError);
         }
     }
 	
