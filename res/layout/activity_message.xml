@@ -6,19 +6,6 @@
     tools:context="${relativePackage}.${activityClass}"
     android:animateLayoutChanges="true">
 
-    <TextView
-        android:id="@+id/textView1"
-        android:layout_width="fill_parent"
-        android:layout_height="50dp"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentTop="true"
-        android:background="#DDDDDD"
-        android:fontFamily="Roboto"
-        android:gravity="center"
-        android:text="Friend name"
-        android:textColor="#51A1C2"
-        android:textSize="30sp" />
-
     <LinearLayout
         android:orientation="horizontal"
         android:id="@+id/linearLayout2"
@@ -76,7 +63,6 @@
 	    android:layout_width="match_parent"
 	    android:layout_height="250dp"
 	    android:layout_alignParentLeft="true"
-	    android:layout_below="@+id/textView1"
 	    android:scrollY="250dp" 
 	    android:stackFromBottom="true"
 		android:transcriptMode="alwaysScroll">

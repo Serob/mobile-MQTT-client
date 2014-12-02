@@ -6,8 +6,6 @@ import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import java.util.Timer;
-import java.util.TimerTask;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -15,27 +13,25 @@ import org.json.JSONObject;
 
 import com.spb.sezam.utils.ActivityUtil;
 import com.vk.sdk.VKUIHelper;
-import com.vk.sdk.api.VKApi;
 import com.vk.sdk.api.VKError;
 import com.vk.sdk.api.VKParameters;
 import com.vk.sdk.api.VKRequest;
 import com.vk.sdk.api.VKRequest.VKRequestListener;
 import com.vk.sdk.api.VKResponse;
 
+import android.app.ActionBar;
 import android.app.Activity;
 import android.content.Intent;
 import android.content.res.AssetManager;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.graphics.Typeface;
 import android.graphics.drawable.BitmapDrawable;
-import android.graphics.drawable.Drawable;
+import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
 import android.os.Handler;
-import android.util.Log;
+import android.support.v4.app.NavUtils;
+import android.view.MenuItem;
 import android.view.View;
-import android.view.View.OnClickListener;
 import android.view.ViewGroup.LayoutParams;
 import android.widget.ImageButton;
 import android.widget.ImageView;
@@ -109,6 +105,59 @@ public class MessageActivity extends Activity {
 			ActivityUtil.showError(MessageActivity.this, error);
 		}
 	};
+	
+	@Override
+	protected void onCreate(Bundle savedInstanceState) {
+		super.onCreate(savedInstanceState);
+		setContentView(R.layout.activity_message);
+		//createButtonsFromAssets();
+		createButtonsFromDrawables();
+		
+		/*ImageButton btn1 = (ImageButton)findViewById(R.id.imageButton1);
+        btn1.setOnClickListener(this);
+
+        ImageButton btn2 = (ImageButton)findViewById(R.id.imageButton2);
+        btn2.setOnClickListener(this);
+
+        ImageButton btn3 = (ImageButton)findViewById(R.id.imageButton3);
+        btn3.setOnClickListener(this);
+
+        ImageButton btn4 = (ImageButton)findViewById(R.id.imageButton4);
+        btn4.setOnClickListener(this);*/
+
+        Intent intent = getIntent();
+        //String activefriend = intent.getStringExtra(FriendsActivity.EXTRA_MESSAGE);
+        
+		try {
+			JSONObject activeFriend = new JSONObject(intent.getStringExtra(FriendsActivity.EXTRA_MESSAGE));
+			activeFriendName = activeFriend.getString("first_name") + " " + activeFriend.getString("last_name");
+			activeFriendId = activeFriend.getInt("id");
+		} catch (JSONException e) {
+			// TODO To be handled
+			e.printStackTrace();
+		}
+        
+        /*TextView txt = (TextView)findViewById(R.id.textView1);
+        txt.setText(activeFriendName);*/
+        //scorllDown((ScrollView)findViewById(R.id.scrollView1));
+        //decodeTextToImages();
+        
+        //up button for actionbar
+        getActionBar().setDisplayHomeAsUpEnabled(true);
+        setTitle(activeFriendName);
+        //getActionBar().setBackgroundDrawable(new ColorDrawable(Color.parseColor("#aaaaaa")));
+	}
+	
+	@Override
+	public boolean onOptionsItemSelected(MenuItem item) {
+		switch (item.getItemId()) {
+		case android.R.id.home:
+			NavUtils.navigateUpFromSameTask(this);
+			return true;
+		default:
+			return super.onOptionsItemSelected(item);
+		}
+	}
 	
 	public void showHistory(JSONArray messages) throws JSONException{
 		String messageString = null;
@@ -196,43 +245,17 @@ public class MessageActivity extends Activity {
 		
 	}
 	
-	
-	
 	@Override
-	protected void onCreate(Bundle savedInstanceState) {
-		super.onCreate(savedInstanceState);
-		setContentView(R.layout.activity_message);
-		//createButtonsFromAssets();
-		createButtonsFromDrawables();
+	protected void onResume() {
+		super.onResume();
+		VKUIHelper.onResume(this);
 		
-		/*ImageButton btn1 = (ImageButton)findViewById(R.id.imageButton1);
-        btn1.setOnClickListener(this);
-
-        ImageButton btn2 = (ImageButton)findViewById(R.id.imageButton2);
-        btn2.setOnClickListener(this);
-
-        ImageButton btn3 = (ImageButton)findViewById(R.id.imageButton3);
-        btn3.setOnClickListener(this);
-
-        ImageButton btn4 = (ImageButton)findViewById(R.id.imageButton4);
-        btn4.setOnClickListener(this);*/
-
-        Intent intent = getIntent();
-        //String activefriend = intent.getStringExtra(FriendsActivity.EXTRA_MESSAGE);
-        
-		try {
-			JSONObject activeFriend = new JSONObject(intent.getStringExtra(FriendsActivity.EXTRA_MESSAGE));
-			activeFriendName = activeFriend.getString("first_name") + " " + activeFriend.getString("last_name");
-			activeFriendId = activeFriend.getInt("id");
-		} catch (JSONException e) {
-			// TODO To be handled
-			e.printStackTrace();
-		}
-        
-        TextView txt = (TextView)findViewById(R.id.textView1);
-        txt.setText(activeFriendName);
-        //scorllDown((ScrollView)findViewById(R.id.scrollView1));
-        //decodeTextToImages();
+		recieveMessagePeriodicly();
+		
+		//permission test
+//		VKRequest request = new VKRequest("account.getAppPermissions");
+//		request.executeWithListener(messageSendListener);
+		
 	}
 	
 	public void backButton(View v){
@@ -350,31 +373,6 @@ public class MessageActivity extends Activity {
 		return false;
 	}
 	
-	@Override
-	protected void onResume() {
-		super.onResume();
-		VKUIHelper.onResume(this);
-		
-		recieveMessagePeriodicly();
-		
-		//permission test
-//		VKRequest request = new VKRequest("account.getAppPermissions");
-//		request.executeWithListener(messageSendListener);
-		
-	}
-
-	@Override
-	protected void onDestroy() {
-		super.onDestroy();
-		VKUIHelper.onDestroy(this);
-	}
-
-	@Override
-	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-		super.onActivityResult(requestCode, resultCode, data);
-		VKUIHelper.onActivityResult(this, requestCode, resultCode, data);
-	}
-	
 	/**
 	 * Uses JAVA reflection
 	 */
@@ -411,7 +409,6 @@ public class MessageActivity extends Activity {
 			        		} catch (IllegalAccessException
 									| IllegalArgumentException
 									| NoSuchFieldException e) {
-								// TODO Auto-generated catch block
 								e.printStackTrace();
 							}
 			    	        
@@ -456,6 +453,18 @@ public class MessageActivity extends Activity {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+	}
+	
+	@Override
+	protected void onDestroy() {
+		super.onDestroy();
+		VKUIHelper.onDestroy(this);
+	}
+
+	@Override
+	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+		super.onActivityResult(requestCode, resultCode, data);
+		VKUIHelper.onActivityResult(this, requestCode, resultCode, data);
 	}
 	
 	/*private void decodeTextToImages(List<String[]> messages){
