@@ -16,10 +16,11 @@ public class ActivityUtil {
 		if(message == null && error.apiError != null){
 			message = error.apiError.errorMessage;
 		}
-        showError(context, message);
 
         if (error.httpError != null) {
-            Log.w("Test", "Error in request or upload: " + error.httpError.getMessage(), error.httpError);
+            Log.w("Test", "Error in request: " + error.httpError.getMessage(), error.httpError);
+        } else {
+        	 showError(context, message);
         }
     }
 	

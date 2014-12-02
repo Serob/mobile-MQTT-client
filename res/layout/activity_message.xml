@@ -20,6 +20,7 @@
         android:textSize="30sp" />
 
     <LinearLayout
+        android:orientation="horizontal"
         android:id="@+id/linearLayout2"
         android:layout_width="wrap_content"
         android:layout_height="350dp"
@@ -27,38 +28,6 @@
         android:layout_alignParentLeft="true"
         android:layout_alignParentRight="true"
         android:background="#CCCCCC" >
-
-        <ImageButton
-            android:id="@+id/imageButton1"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginLeft="0dp"
-            android:contentDescription="Image1"
-            android:src="@drawable/image_1" />
-
-        <ImageButton
-            android:id="@+id/imageButton2"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginLeft="0dp"
-            android:contentDescription="Image2"
-            android:src="@drawable/image_2" />
-
-        <ImageButton
-            android:id="@+id/imageButton3"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginLeft="0dp"
-            android:contentDescription="Image3"
-            android:src="@drawable/image_3" />
-
-        <ImageButton
-            android:id="@+id/imageButton4"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginLeft="0dp"
-            android:contentDescription="Image4"
-            android:src="@drawable/image_4" />
     </LinearLayout>
 
 	<RelativeLayout
@@ -105,17 +74,17 @@
 	<ScrollView
 	    android:id="@+id/scrollView1"
 	    android:layout_width="match_parent"
-	    android:layout_height="200dp"
+	    android:layout_height="250dp"
 	    android:layout_alignParentLeft="true"
 	    android:layout_below="@+id/textView1"
-	    android:scrollY="200dp" 
+	    android:scrollY="250dp" 
 	    android:stackFromBottom="true"
 		android:transcriptMode="alwaysScroll">
 
 	    <LinearLayout
 	        android:id="@+id/messageHistory"
 	        android:layout_width="match_parent"
-	        android:layout_height="200dp"
+	        android:layout_height="250dp"
 	        android:orientation="vertical" >
 	    </LinearLayout>
 	    	

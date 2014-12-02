@@ -1,6 +1,10 @@
 package com.spb.sezam;
 
+import java.io.File;
+import java.io.IOException;
+import java.lang.reflect.Field;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -10,6 +14,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import com.spb.sezam.utils.ActivityUtil;
+import com.vk.sdk.VKUIHelper;
 import com.vk.sdk.api.VKApi;
 import com.vk.sdk.api.VKError;
 import com.vk.sdk.api.VKParameters;
@@ -19,12 +24,19 @@ import com.vk.sdk.api.VKResponse;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.content.res.AssetManager;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.graphics.Typeface;
+import android.graphics.drawable.BitmapDrawable;
+import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.os.Handler;
+import android.util.Log;
 import android.view.View;
 import android.view.View.OnClickListener;
+import android.view.ViewGroup.LayoutParams;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.ScrollView;
@@ -32,7 +44,7 @@ import android.widget.Toast;
 import android.widget.TextView;
 import android.widget.LinearLayout;
 
-public class MessageActivity extends Activity implements OnClickListener{
+public class MessageActivity extends Activity {
 
 	public static final String ICON_SPLIT_SYMBOLS = "|_";
 	
@@ -154,7 +166,18 @@ public class MessageActivity extends Activity implements OnClickListener{
 		
 		ImageView image = new ImageView(MessageActivity.this);
 		
-		if("чувствовать".equals(text)){
+		int bgResourceId;
+		try {
+			bgResourceId = R.drawable.class.getField(text).getInt(null);
+			image.setBackgroundResource(bgResourceId);
+			lLayout.addView(image);
+		} catch (IllegalAccessException | IllegalArgumentException e) {
+			e.printStackTrace();
+		} catch (NoSuchFieldException e) {
+			showTextAsString(text, lLayout);
+		}
+		
+		/*if("чувствовать".equals(text)){
 			image.setBackgroundResource(R.drawable.image_1_thumb);
 		} else if("я".equals(text)){
 			image.setBackgroundResource(R.drawable.image_2_thumb);
@@ -169,7 +192,7 @@ public class MessageActivity extends Activity implements OnClickListener{
 		}
 		
 		//if icon name is found
-		lLayout.addView(image);
+		lLayout.addView(image);*/
 		
 	}
 	
@@ -179,8 +202,10 @@ public class MessageActivity extends Activity implements OnClickListener{
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_message);
+		//createButtonsFromAssets();
+		createButtonsFromDrawables();
 		
-		ImageButton btn1 = (ImageButton)findViewById(R.id.imageButton1);
+		/*ImageButton btn1 = (ImageButton)findViewById(R.id.imageButton1);
         btn1.setOnClickListener(this);
 
         ImageButton btn2 = (ImageButton)findViewById(R.id.imageButton2);
@@ -190,7 +215,7 @@ public class MessageActivity extends Activity implements OnClickListener{
         btn3.setOnClickListener(this);
 
         ImageButton btn4 = (ImageButton)findViewById(R.id.imageButton4);
-        btn4.setOnClickListener(this);
+        btn4.setOnClickListener(this);*/
 
         Intent intent = getIntent();
         //String activefriend = intent.getStringExtra(FriendsActivity.EXTRA_MESSAGE);
@@ -203,9 +228,6 @@ public class MessageActivity extends Activity implements OnClickListener{
 			// TODO To be handled
 			e.printStackTrace();
 		}
-
-        Toast showName = Toast.makeText(getApplicationContext(), activeFriendName, Toast.LENGTH_SHORT);      
-        showName.show();
         
         TextView txt = (TextView)findViewById(R.id.textView1);
         txt.setText(activeFriendName);
@@ -227,8 +249,10 @@ public class MessageActivity extends Activity implements OnClickListener{
 	        for(String msg : messageToSend){
 	        	messageString.append(msg);
 	        }
-	        VKRequest request = new VKRequest("messages.send", VKParameters.from("user_id", 
-	        				String.valueOf(activeFriendId), "message", messageString.toString()));
+	        long guId = new Date().getTime();
+	        VKRequest request = new VKRequest("messages.send", VKParameters.from(
+		        		"user_id", String.valueOf(activeFriendId), 
+		        		"message", messageString.toString(), "guid", guId));
 			request.executeWithListener(messageSendListener);
 		}
 		
@@ -249,41 +273,6 @@ public class MessageActivity extends Activity implements OnClickListener{
 		request.executeWithListener(messageRecieveListener);
 	}
 	
-	public void onClick(View v) {
-
-		LinearLayout piktogram = (LinearLayout)findViewById(R.id.linearLayout1);
-		ImageView image = new ImageView(MessageActivity.this);
-		switch (v.getId()) {
-
-		case R.id.imageButton1:
-			addImageNameToSendMessages("чувствовать");
-	        image.setBackgroundResource(R.drawable.image_1_thumb);
-	        piktogram.addView(image);
-			break;
-
-		case R.id.imageButton2:
-			addImageNameToSendMessages("я");
-	        image.setBackgroundResource(R.drawable.image_2_thumb);
-	        piktogram.addView(image);
-			break;
-
-		case R.id.imageButton3:
-			addImageNameToSendMessages("хорошо");
-	        image.setBackgroundResource(R.drawable.image_3_thumb);
-	        piktogram.addView(image);
-			break;
-
-		case R.id.imageButton4:
-			addImageNameToSendMessages("чувствовать себя");
-	        image.setBackgroundResource(R.drawable.image_4_thumb);
-	        piktogram.addView(image);
-			break;
-			
-		default:
-			break;
-		}
-	}
-	
 	private void addImageNameToSendMessages(String imageName){
 		messageToSend.add(ICON_SPLIT_SYMBOLS + imageName + ICON_SPLIT_SYMBOLS);
 	}
@@ -296,12 +285,7 @@ public class MessageActivity extends Activity implements OnClickListener{
 	        }
 	    });
 	} 
-	
-	@Override
-	protected void onResume() {
-		super.onResume();
-		recieveMessagePeriodicly();
-	}
+
 	
 	@Override
 	protected void onPause() {
@@ -364,6 +348,114 @@ public class MessageActivity extends Activity implements OnClickListener{
 			}
 		}
 		return false;
+	}
+	
+	@Override
+	protected void onResume() {
+		super.onResume();
+		VKUIHelper.onResume(this);
+		
+		recieveMessagePeriodicly();
+		
+		//permission test
+//		VKRequest request = new VKRequest("account.getAppPermissions");
+//		request.executeWithListener(messageSendListener);
+		
+	}
+
+	@Override
+	protected void onDestroy() {
+		super.onDestroy();
+		VKUIHelper.onDestroy(this);
+	}
+
+	@Override
+	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+		super.onActivityResult(requestCode, resultCode, data);
+		VKUIHelper.onActivityResult(this, requestCode, resultCode, data);
+	}
+	
+	/**
+	 * Uses JAVA reflection
+	 */
+	private void createButtonsFromDrawables(){
+		//using reflection
+		LinearLayout lLayout = (LinearLayout) findViewById(R.id.linearLayout2);
+		Field[] drawableFields = R.drawable.class.getFields();
+		int resId;
+		for(Field field : drawableFields){
+			String fieldName = field.getName();
+			if(fieldName.startsWith("image_") && !fieldName.endsWith("thumb")){
+				try {
+					resId = field.getInt(null);
+					ImageButton btn = new ImageButton(MessageActivity.this);
+					LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
+							LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT);
+					params.leftMargin = 0;
+					
+					btn.setImageResource(resId);
+					btn.setContentDescription(fieldName);
+					btn.setLayoutParams(params);
+					
+					btn.setOnClickListener(new View.OnClickListener() {
+			            @Override
+			            public void onClick(View view) {
+			            	LinearLayout piktogram = (LinearLayout)findViewById(R.id.linearLayout1);
+			        		ImageView image = new ImageView(MessageActivity.this);
+			        		
+			        		String bgResourceName = view.getContentDescription() + "_thumb";
+			        		addImageNameToSendMessages(bgResourceName);
+			        		try {
+								int bgResourceId = R.drawable.class.getField(bgResourceName).getInt(null);
+								image.setBackgroundResource(bgResourceId);
+			        		} catch (IllegalAccessException
+									| IllegalArgumentException
+									| NoSuchFieldException e) {
+								// TODO Auto-generated catch block
+								e.printStackTrace();
+							}
+			    	        
+			    	        piktogram.addView(image);
+			            }
+			        });
+					
+					lLayout.addView(btn);
+					
+				} catch (IllegalAccessException | IllegalArgumentException e) {
+					e.printStackTrace();
+					continue;
+				}
+			}
+		}
+		
+	}
+	
+	/**
+	 * Uses assets
+	 */
+	private void createButtonsFromAssets(){
+		AssetManager am = getAssets();
+		LinearLayout lLayout = (LinearLayout) findViewById(R.id.linearLayout2);
+		try {
+			for(String name : am.list("test")){
+				ImageButton btn = new ImageButton(MessageActivity.this);
+				//Bitmap a = BitmapFactory.decodeStream(am.open(name));
+				BitmapDrawable bd = new BitmapDrawable(getResources(), am.open("test" + File.separator + name));
+				LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT);
+				params.leftMargin = 0;
+				
+				
+				//btn.setBackground(bd);
+				//btn.setImageDrawable(bd);
+				btn.setContentDescription(name);
+				btn.setLayoutParams(params);
+				lLayout.addView(btn);
+			}
+			
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 	
 	/*private void decodeTextToImages(List<String[]> messages){
