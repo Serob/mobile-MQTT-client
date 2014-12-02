@@ -44,6 +44,8 @@ public class MessageActivity extends Activity {
 
 	public static final String ICON_SPLIT_SYMBOLS = "|_";
 	
+	private static final int MESSAGE_RECIEVE_COUNT = 7;
+	
 	private List<String> messageToSend = new ArrayList<String>();
 	private JSONArray allMessages = new JSONArray();
 	private String activeFriendName = null;
@@ -61,7 +63,7 @@ public class MessageActivity extends Activity {
 			messageToSend.clear();
 			Toast showSent = Toast.makeText(getApplicationContext(), "Сообщение отправлено", Toast.LENGTH_SHORT);
 			showSent.show();
-			recieveMessageHistory(10);
+			recieveMessageHistory(MESSAGE_RECIEVE_COUNT);
 		}
 
 		@Override
@@ -250,6 +252,9 @@ public class MessageActivity extends Activity {
 		super.onResume();
 		VKUIHelper.onResume(this);
 		
+		//first time call with more messages
+		recieveMessageHistory(70);
+		//then as written in recieveMessagePeriodicly
 		recieveMessagePeriodicly();
 		
 		//permission test
@@ -289,11 +294,10 @@ public class MessageActivity extends Activity {
 	
 	//messageCount must be used in real later(the idea is to load more messages at first, then less)
 	public void recieveMessageHistory(int messagesCount){
-		if(messagesCount <= 0){
-			messagesCount = 1;
+		if(messagesCount > 0){
+			VKRequest request = new VKRequest("messages.getHistory", VKParameters.from("user_id", activeFriendId, "count", messagesCount));
+			request.executeWithListener(messageRecieveListener);
 		}
-		VKRequest request = new VKRequest("messages.getHistory", VKParameters.from("user_id", activeFriendId, "count", messagesCount));
-		request.executeWithListener(messageRecieveListener);
 	}
 	
 	private void addImageNameToSendMessages(String imageName){
@@ -326,12 +330,12 @@ public class MessageActivity extends Activity {
 	private void recieveMessagePeriodicly() {
 		recieveMessagesRunnable = new Runnable() {
 			public void run() {
-				recieveMessageHistory(50);
-				recieveMessagesHandler.postDelayed(this, 5000);
+				recieveMessageHistory(MESSAGE_RECIEVE_COUNT);
+				recieveMessagesHandler.postDelayed(this, 7000);
 			}
 		};
 		
-		recieveMessagesHandler.post(recieveMessagesRunnable);
+		recieveMessagesHandler.postDelayed(recieveMessagesRunnable, 7000);
 	}
 	
 	public JSONArray findNewMessages(JSONArray oldList, JSONArray newList) throws JSONException{
@@ -359,7 +363,7 @@ public class MessageActivity extends Activity {
 	/**
 	 * Returns {@code true} if there is any received message in the list, otherwise returns {@code false} 
 	 * @param messages The list of messages to be check
-	 * @return {@code booelan}
+	 * @return {@code boolean}
 	 * @throws JSONException
 	 */
 	private boolean isThereRecieved(JSONArray messages) throws JSONException{
