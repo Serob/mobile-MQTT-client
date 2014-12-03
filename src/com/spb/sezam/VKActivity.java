@@ -148,11 +148,12 @@ public class VKActivity extends Activity {
 		super.onActivityResult(requestCode, resultCode, data);
 		VKUIHelper.onActivityResult(this, requestCode, resultCode, data);
 	}
-    
-    private void startActivity(Class<? extends Activity> a){
-    	Intent startNewActivityOpen = new Intent(this, a);
-    	startActivityForResult(startNewActivityOpen, 0);
-    }
+
+	private void startActivity(Class<? extends Activity> a) {
+		Intent startNewActivityOpen = new Intent(this, a);
+		startActivityForResult(startNewActivityOpen, 0);
+	}
+   
 }
 
 

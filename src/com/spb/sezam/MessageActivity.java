@@ -12,6 +12,8 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import com.spb.sezam.utils.ActivityUtil;
+import com.vk.sdk.VKScope;
+import com.vk.sdk.VKSdk;
 import com.vk.sdk.VKUIHelper;
 import com.vk.sdk.api.VKError;
 import com.vk.sdk.api.VKParameters;
@@ -21,6 +23,8 @@ import com.vk.sdk.api.VKResponse;
 
 import android.app.ActionBar;
 import android.app.Activity;
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.res.AssetManager;
 import android.graphics.Color;
@@ -30,9 +34,13 @@ import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.v4.app.NavUtils;
+import android.util.Log;
+import android.view.MenuInflater;
 import android.view.MenuItem;
+import android.view.Menu;
 import android.view.View;
 import android.view.ViewGroup.LayoutParams;
+import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.ScrollView;
@@ -156,9 +164,98 @@ public class MessageActivity extends Activity {
 		case android.R.id.home:
 			NavUtils.navigateUpFromSameTask(this);
 			return true;
+		case R.id.action_exit:
+			AlertDialog.Builder builder = new AlertDialog.Builder(this);
+			builder.setMessage("Are you sure?").setPositiveButton("Yes", dialogClickListener).setNegativeButton("No", dialogClickListener).show();
+		case R.id.action_email:
+			Intent i = new Intent(Intent.ACTION_SEND);
+			i.setType("text/plain");
+			i.putExtra(Intent.EXTRA_EMAIL  , new String[]{"annainternest@gmail.com"});
+			i.putExtra(Intent.EXTRA_SUBJECT, "Письмо администратору");
+			i.putExtra(Intent.EXTRA_TEXT   , "\nОтправлено с приложения Sezam");
+			try {
+			    startActivity(Intent.createChooser(i, "Send mail..."));
+			} catch (android.content.ActivityNotFoundException ex) {
+			    Toast.makeText(MessageActivity.this, "There are no email clients installed.", Toast.LENGTH_SHORT).show();
+			}
 		default:
 			return super.onOptionsItemSelected(item);
 		}
+	}
+	
+		
+	
+	DialogInterface.OnClickListener dialogClickListener = new DialogInterface.OnClickListener() {
+	    @Override
+	    public void onClick(DialogInterface dialog, int which) {
+	        switch (which){
+	        case DialogInterface.BUTTON_POSITIVE:
+	        	Log.e("token=", VKSdk.getAccessToken().userId);
+	        	VKSdk.logout();
+	        	if(recieveMessagesHandler != null){
+	    			recieveMessagesHandler.removeCallbacks(recieveMessagesRunnable);
+	    		}
+	        	startActivity(VKActivity.class);
+	        	setContentView(R.layout.activity_vk);
+
+				// ------------------------------
+
+				Button b = (Button) findViewById(R.id.sign_in_button);
+				// predefined in .xml as Войти
+				if (VKSdk.wakeUpSession()) {
+					Log.e("wakeUp", "wakeUp");
+					startActivity(FriendsActivity.class);
+					// skzbi hamar shat el a
+					b.setText("Выход!");
+					b.setOnClickListener(new View.OnClickListener() {
+						@Override
+						public void onClick(View view) {
+							VKSdk.logout();
+							((Button) view).setText("Войти");
+						}
+					});
+					//
+					return;
+				}
+
+				b.setOnClickListener(new View.OnClickListener() {
+
+					@Override
+					public void onClick(View view) {
+						if (VKSdk.isLoggedIn()) {
+							Log.e("Uje logged in", "Uje Loged in");
+						}
+						 String[] myScope = new String[] {
+					         VKScope.FRIENDS,
+					         VKScope.MESSAGES,
+					         VKScope.OFFLINE
+						 };						
+						VKSdk.authorize(myScope);
+						if (VKSdk.isLoggedIn()) {
+							Log.e("Uje logged in2", "Uje Loged in2");
+						}
+					}
+				});
+				// ------------------------------
+	            
+	            
+	            //Yes button clicked
+	            break;
+
+	        case DialogInterface.BUTTON_NEGATIVE:
+	            //No button clicked
+	            break;
+	        }
+	    }
+	};	
+	
+	
+	@Override
+	public boolean onCreateOptionsMenu(Menu menu) {
+	    // Inflate the menu items for use in the action bar
+	    MenuInflater inflater = getMenuInflater();
+	    inflater.inflate(R.menu.activity_message_actions, menu);
+	    return super.onCreateOptionsMenu(menu);
 	}
 	
 	public void showHistory(JSONArray messages) throws JSONException{
@@ -470,6 +567,12 @@ public class MessageActivity extends Activity {
 		super.onActivityResult(requestCode, resultCode, data);
 		VKUIHelper.onActivityResult(this, requestCode, resultCode, data);
 	}
+
+	private void startActivity(Class<? extends Activity> a) {
+		Intent startNewActivityOpen = new Intent(this, a);
+		startActivityForResult(startNewActivityOpen, 0);
+	}	
+		
 	
 	/*private void decodeTextToImages(List<String[]> messages){
 	LinearLayout historyLayout = (LinearLayout)findViewById(R.id.messageHistory);
