@@ -1,16 +1,16 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:yourapp="http://schemas.android.com/apk/res-auto" >
 	<item android:id="@+id/action_message"
-          android:icon="@drawable/back"
           android:title="message count"
+          android:icon="@drawable/count_0"
           android:showAsAction="always" />
 	<item android:id="@+id/action_email"	
-		android:title="email"
+		android:title="Обратная связь"
 		android:showAsAction="never" />	
 	<item android:id="@+id/action_about"	
 		android:title="about"
 		android:showAsAction="never"/>
 	<item android:id="@+id/action_exit"	
-		android:title="exit"
+		android:title="Выход"
 		android:showAsAction="never" />
 </menu>

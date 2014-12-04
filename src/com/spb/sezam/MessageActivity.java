@@ -58,9 +58,14 @@ public class MessageActivity extends Activity {
 	private JSONArray allMessages = new JSONArray();
 	private String activeFriendName = null;
 	private int activeFriendId;
+	private int unReadDialogsCount = 0;
 	
 	private Runnable recieveMessagesRunnable = null;
-	private final Handler recieveMessagesHandler = new Handler();
+	/** For all Users */
+	private Runnable checkUnreadMessagesRunnable = null;
+	private final Handler handler = new Handler();
+	
+	private Menu menu;
 	
 	private VKRequestListener messageSendListener  = new VKRequestListener(){
 
@@ -95,19 +100,77 @@ public class MessageActivity extends Activity {
 	            //must be only when Activity starts
 	        	
 	        	JSONArray newMessages = findNewMessages(allMessages, messages);
-	        	if(newMessages.length() != 0){
+	        	int length = newMessages.length();
+	        	if(length != 0){
 		            showHistory(newMessages);
 		            scorllDown((ScrollView)findViewById(R.id.scrollView1));
 		            if(isThereRecieved(newMessages) && newMessages != messages){
 		            	Toast showSent = Toast.makeText(getApplicationContext(), "Получено новое сообщение", Toast.LENGTH_SHORT);
 		    			showSent.show();
 		            }
+		            
+		            //mark received new messages as read
+		            StringBuilder messagsIds = new StringBuilder();
+		            //this approach is not good for first call
+		            for(int i=0; i < length; i++){
+		            	int messId = newMessages.getJSONObject(i).getInt("id");
+		            	messagsIds.append(messId);
+		            	if(i != (length - 1)){
+		            		messagsIds.append(",");
+		            	}
+		            }
+		            VKRequest request = new VKRequest("messages.markAsRead", VKParameters.from(
+			        		"message_ids", messagsIds.toString()));
+					request.executeWithListener(markAsReadListener);
+					//
+		            
 	        	}
 	            allMessages = messages;
 	            //
 			} catch (JSONException e) {
 				e.printStackTrace();
 			}
+		}
+
+		@Override
+		public void onError(VKError error) {
+			ActivityUtil.showError(MessageActivity.this, error);
+		}
+	};
+	
+	private VKRequestListener markAsReadListener  = new VKRequestListener(){
+		
+		@Override
+		public void onError(VKError error) {
+			ActivityUtil.showError(MessageActivity.this, error);
+		}
+	};
+	
+	private VKRequestListener recieveDialogsListener = new VKRequestListener() {
+		
+		@Override
+		public void onComplete(VKResponse response) {
+			try {
+				JSONArray messages = response.json.getJSONObject("response").getJSONArray("items");
+				unReadDialogsCount = messages.length();
+				switch (messages.length()) {
+				case 0:
+					menu.getItem(0).setIcon(R.drawable.count_0);
+					break;
+				case 1:
+					menu.getItem(0).setIcon(R.drawable.count_1);
+					break;
+				case 2:
+					menu.getItem(0).setIcon(R.drawable.count_2);
+					break;
+				default:
+					menu.getItem(0).setIcon(R.drawable.count_many);
+					break;
+				}
+			} catch (JSONException e) {
+				e.printStackTrace();
+			}
+			
 		}
 
 		@Override
@@ -167,6 +230,7 @@ public class MessageActivity extends Activity {
 		case R.id.action_exit:
 			AlertDialog.Builder builder = new AlertDialog.Builder(this);
 			builder.setMessage("Are you sure?").setPositiveButton("Yes", dialogClickListener).setNegativeButton("No", dialogClickListener).show();
+			//check should be break here
 		case R.id.action_email:
 			Intent i = new Intent(Intent.ACTION_SEND);
 			i.setType("text/plain");
@@ -177,6 +241,13 @@ public class MessageActivity extends Activity {
 			    startActivity(Intent.createChooser(i, "Send mail..."));
 			} catch (android.content.ActivityNotFoundException ex) {
 			    Toast.makeText(MessageActivity.this, "There are no email clients installed.", Toast.LENGTH_SHORT).show();
+			}
+			return true;
+		case R.id.action_message:
+			if(unReadDialogsCount > 0){
+				//should be changed
+				NavUtils.navigateUpFromSameTask(this);
+				return true;
 			}
 		default:
 			return super.onOptionsItemSelected(item);
@@ -192,13 +263,14 @@ public class MessageActivity extends Activity {
 	        case DialogInterface.BUTTON_POSITIVE:
 	        	Log.e("token=", VKSdk.getAccessToken().userId);
 	        	VKSdk.logout();
-	        	if(recieveMessagesHandler != null){
-	    			recieveMessagesHandler.removeCallbacks(recieveMessagesRunnable);
+	        	
+	        	// ------------------------BAD COPY-----------------------
+	        	if(handler != null){
+	    			handler.removeCallbacks(recieveMessagesRunnable);
+	    			handler.removeCallbacks(checkUnreadMessagesRunnable);
 	    		}
 	        	startActivity(VKActivity.class);
 	        	setContentView(R.layout.activity_vk);
-
-				// ------------------------------
 
 				Button b = (Button) findViewById(R.id.sign_in_button);
 				// predefined in .xml as Войти
@@ -236,7 +308,7 @@ public class MessageActivity extends Activity {
 						}
 					}
 				});
-				// ------------------------------
+				//// -------------------------------------------
 	            
 	            
 	            //Yes button clicked
@@ -253,6 +325,7 @@ public class MessageActivity extends Activity {
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
 	    // Inflate the menu items for use in the action bar
+		this.menu = menu;
 	    MenuInflater inflater = getMenuInflater();
 	    inflater.inflate(R.menu.activity_message_actions, menu);
 	    return super.onCreateOptionsMenu(menu);
@@ -353,6 +426,7 @@ public class MessageActivity extends Activity {
 		recieveMessageHistory(70);
 		//then as written in recieveMessagePeriodicly
 		recieveMessagePeriodicly();
+		checkUnreadeMessagesPeriodicly();
 		
 		//permission test
 //		VKRequest request = new VKRequest("account.getAppPermissions");
@@ -385,16 +459,20 @@ public class MessageActivity extends Activity {
 		
 		 //VKApi.uploadWallPhotoRequest(image, userId, groupId)
 		 
-		VKRequest request = new VKRequest("photos.getMessagesUploadServer");
-		request.executeWithListener(messageSendListener);
+//		VKRequest request = new VKRequest("photos.getMessagesUploadServer");
+//		request.executeWithListener(messageSendListener);
 	}
 	
-	//messageCount must be used in real later(the idea is to load more messages at first, then less)
 	public void recieveMessageHistory(int messagesCount){
 		if(messagesCount > 0){
 			VKRequest request = new VKRequest("messages.getHistory", VKParameters.from("user_id", activeFriendId, "count", messagesCount));
 			request.executeWithListener(messageRecieveListener);
 		}
+	}
+	
+	public void checkUnreadeMessages(){
+		VKRequest request = new VKRequest("messages.getDialogs", VKParameters.from("unread", "1", "preview_length", "20"));
+		request.executeWithListener(recieveDialogsListener);
 	}
 	
 	private void addImageNameToSendMessages(String imageName){
@@ -414,8 +492,9 @@ public class MessageActivity extends Activity {
 	@Override
 	protected void onPause() {
 		super.onPause();
-		if(recieveMessagesHandler != null){
-			recieveMessagesHandler.removeCallbacks(recieveMessagesRunnable);
+		if(handler != null){
+			handler.removeCallbacks(recieveMessagesRunnable);
+			handler.removeCallbacks(checkUnreadMessagesRunnable);
 		}
 	}
 
@@ -428,11 +507,23 @@ public class MessageActivity extends Activity {
 		recieveMessagesRunnable = new Runnable() {
 			public void run() {
 				recieveMessageHistory(MESSAGE_RECIEVE_COUNT);
-				recieveMessagesHandler.postDelayed(this, 7000);
+				handler.postDelayed(this, 7000);
 			}
 		};
 		
-		recieveMessagesHandler.postDelayed(recieveMessagesRunnable, 7000);
+		handler.postDelayed(recieveMessagesRunnable, 7000);
+	}
+	
+	private void checkUnreadeMessagesPeriodicly() {
+		checkUnreadMessagesRunnable = new Runnable() {
+			public void run() {
+				checkUnreadeMessages();
+				handler.postDelayed(this, 7000);
+			}
+		};
+		
+		unReadDialogsCount = 0;
+		handler.postDelayed(checkUnreadMessagesRunnable, 500);
 	}
 	
 	public JSONArray findNewMessages(JSONArray oldList, JSONArray newList) throws JSONException{

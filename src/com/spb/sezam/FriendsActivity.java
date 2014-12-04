@@ -58,8 +58,23 @@ public class FriendsActivity extends Activity {
 	}
 	
 	private void showFriends(JSONArray friendsJson) throws JSONException {
-		//sort friendsJson
+		//create Sezam Bot for test messages
+		JSONObject sezamBot = new JSONObject();
+		sezamBot.put("last_name", "ÒÅÑÒ");
+		sezamBot.put("first_name", "ÑÅÇÀÌ");
+		sezamBot.put("id", "53759969"); //old profile ID
+		sezamBot.put("online", "0");
+		
+		//shift array
+		friendsJson.put(friendsJson.length(),"");
 		int count = friendsJson.length();
+		for(int i = count-1; i > 1; i--){
+			friendsJson.put(i, friendsJson.get(i-1));
+		}
+		
+		//add sezamBot
+		friendsJson.put(0, sezamBot);
+		
 		Button[] btnArray = new Button[count];
 		LinearLayout friends = (LinearLayout)findViewById(R.id.friends);
 		for (int i = 0; i < count; i++) {
