@@ -230,7 +230,7 @@ public class MessageActivity extends Activity {
 		case R.id.action_exit:
 			AlertDialog.Builder builder = new AlertDialog.Builder(this);
 			builder.setMessage("Are you sure?").setPositiveButton("Yes", dialogClickListener).setNegativeButton("No", dialogClickListener).show();
-			//check should be break here
+			return true;
 		case R.id.action_email:
 			Intent i = new Intent(Intent.ACTION_SEND);
 			i.setType("text/plain");
@@ -253,9 +253,8 @@ public class MessageActivity extends Activity {
 			return super.onOptionsItemSelected(item);
 		}
 	}
-	
-		
-	
+
+
 	DialogInterface.OnClickListener dialogClickListener = new DialogInterface.OnClickListener() {
 	    @Override
 	    public void onClick(DialogInterface dialog, int which) {
