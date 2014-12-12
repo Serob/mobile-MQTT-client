@@ -6,10 +6,13 @@ import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.xmlpull.v1.XmlPullParser;
 
 import com.spb.sezam.utils.ActivityUtil;
 import com.vk.sdk.VKScope;
@@ -27,6 +30,7 @@ import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.res.AssetManager;
+import android.content.res.XmlResourceParser;
 import android.graphics.Color;
 import android.graphics.Typeface;
 import android.graphics.drawable.BitmapDrawable;
@@ -183,8 +187,8 @@ public class MessageActivity extends Activity {
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_message);
-		//createButtonsFromAssets();
 		createButtonsFromDrawables();
+		//createButtonsFromAssets();
 		
 		/*ImageButton btn1 = (ImageButton)findViewById(R.id.imageButton1);
         btn1.setOnClickListener(this);
@@ -230,7 +234,7 @@ public class MessageActivity extends Activity {
 		case R.id.action_exit:
 			AlertDialog.Builder builder = new AlertDialog.Builder(this);
 			builder.setMessage("Are you sure?").setPositiveButton("Yes", dialogClickListener).setNegativeButton("No", dialogClickListener).show();
-			//check should be break here
+			return true;
 		case R.id.action_email:
 			Intent i = new Intent(Intent.ACTION_SEND);
 			i.setType("text/plain");
@@ -629,16 +633,46 @@ public class MessageActivity extends Activity {
 			for(String name : am.list("test")){
 				ImageButton btn = new ImageButton(MessageActivity.this);
 				//Bitmap a = BitmapFactory.decodeStream(am.open(name));
-				BitmapDrawable bd = new BitmapDrawable(getResources(), am.open("test" + File.separator + name));
+				BitmapDrawable bd = new BitmapDrawable(getResources(), am.open("test"+ File.separator + "1.тест2" + File.separator + name));
 				LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT);
 				params.leftMargin = 0;
 				
 				
 				//btn.setBackground(bd);
 				//btn.setImageDrawable(bd);
-				btn.setContentDescription(name);
 				btn.setLayoutParams(params);
 				lLayout.addView(btn);
+				
+				String pattern = "[^\\.]([^.]*)$";
+			    Pattern afterLastDot = Pattern.compile(pattern);
+			    Matcher m = afterLastDot.matcher(name);
+			    if(m.find()){
+					name = m.group(0);
+			    }
+				btn.setContentDescription(name);
+				
+				btn.setOnClickListener(new View.OnClickListener() {
+		            @Override
+		            public void onClick(View view) {
+		            	LinearLayout piktogram = (LinearLayout)findViewById(R.id.linearLayout1);
+		        		ImageView image = new ImageView(MessageActivity.this);
+		        		
+		        		String bgResourceName = (String)view.getContentDescription();
+		        		addImageNameToSendMessages(bgResourceName);
+		        		
+		        		AssetManager am = getAssets();
+		        		try {
+			        		BitmapDrawable bd = new BitmapDrawable(getResources(), am.open("test" + File.separator + bgResourceName));
+			        		
+			        		image.setBackground(bd);
+			        		piktogram.addView(image);
+							
+		        		} catch (IOException e) {
+							e.printStackTrace();
+						}
+		            }
+		        });
+				
 			}
 			
 		} catch (IOException e) {
