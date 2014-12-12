@@ -257,9 +257,8 @@ public class MessageActivity extends Activity {
 			return super.onOptionsItemSelected(item);
 		}
 	}
-	
-		
-	
+
+
 	DialogInterface.OnClickListener dialogClickListener = new DialogInterface.OnClickListener() {
 	    @Override
 	    public void onClick(DialogInterface dialog, int which) {
