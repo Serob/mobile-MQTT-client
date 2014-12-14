@@ -233,7 +233,7 @@ public class MessageActivity extends Activity {
 			return true;
 		case R.id.action_exit:
 			AlertDialog.Builder builder = new AlertDialog.Builder(this);
-			builder.setMessage("Are you sure?").setPositiveButton("Yes", dialogClickListener).setNegativeButton("No", dialogClickListener).show();
+			builder.setMessage("Вы уверены?").setPositiveButton("Да", dialogClickListener).setNegativeButton("Нет", dialogClickListener).show();
 			return true;
 		case R.id.action_email:
 			Intent i = new Intent(Intent.ACTION_SEND);

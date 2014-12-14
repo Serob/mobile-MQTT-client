@@ -68,7 +68,7 @@ public class FriendsActivity extends Activity {
 		//shift array
 		friendsJson.put(friendsJson.length(),"");
 		int count = friendsJson.length();
-		for(int i = count-1; i > 1; i--){
+		for(int i = count-1; i > 0; i--){
 			friendsJson.put(i, friendsJson.get(i-1));
 		}
 		
