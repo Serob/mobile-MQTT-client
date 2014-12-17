@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout  xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="horizontal"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="?android:attr/activatedBackgroundIndicator" >
+
+    
+    <ImageView
+        android:id="@+id/online_status"
+        android:layout_width="30dp"
+        android:layout_height="30dp"
+        android:layout_alignParentLeft="true"
+        android:src="@drawable/ic_launcher"/>
+
+    <TextView 
+        android:id="@+id/user_label"
+        android:text="asdfasdf"
+        android:layout_marginLeft="30dp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+	    android:textAppearance="?android:attr/textAppearanceListItemSmall"
+	    android:minHeight="?android:attr/listPreferredItemHeightSmall"/>
+    
+    <ImageView
+        android:id="@+id/has_unread"
+        android:layout_width="30dp"
+        android:layout_height="30dp"
+        android:layout_alignParentRight="true"/>
+
+</RelativeLayout >

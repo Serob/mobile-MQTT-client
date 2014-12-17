@@ -46,13 +46,13 @@ public class VKActivity extends Activity {
 			@Override
 			public void onReceiveNewToken(VKAccessToken newToken) {
 				Log.e("Entering the app", "Entering the app! New token: " + newToken.userId);
-				startActivity(FriendsActivity.class);
+				startActivity(MessageActivity.class);
 			}
 
 			@Override
 			public void onAcceptUserToken(VKAccessToken token) {
 				Log.e("onAcceptUserToken", "onAcceptUserToken don't know when");
-				startActivity(FriendsActivity.class);
+				startActivity(MessageActivity.class);
 			}
 			
 			@Override
@@ -76,7 +76,7 @@ public class VKActivity extends Activity {
         //predefined in .xml as Войти
         if (VKSdk.wakeUpSession()) {
         	Log.e("wakeUp","wakeUp");
-            startActivity(FriendsActivity.class);
+            startActivity(MessageActivity.class);
             //skzbi hamar shat el a
             b.setText("Выход!");
             b.setOnClickListener(new View.OnClickListener() {

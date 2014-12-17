@@ -12,8 +12,8 @@ import java.util.regex.Pattern;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.xmlpull.v1.XmlPullParser;
 
+import com.spb.sezam.NavigationDrawerFragment.NavigationDrawerCallbacks;
 import com.spb.sezam.utils.ActivityUtil;
 import com.vk.sdk.VKScope;
 import com.vk.sdk.VKSdk;
@@ -24,20 +24,19 @@ import com.vk.sdk.api.VKRequest;
 import com.vk.sdk.api.VKRequest.VKRequestListener;
 import com.vk.sdk.api.VKResponse;
 
-import android.app.ActionBar;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.res.AssetManager;
-import android.content.res.XmlResourceParser;
 import android.graphics.Color;
 import android.graphics.Typeface;
 import android.graphics.drawable.BitmapDrawable;
-import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.v4.app.NavUtils;
+import android.support.v4.widget.DrawerLayout;
+import android.support.v7.app.ActionBarActivity;
 import android.util.Log;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -52,7 +51,9 @@ import android.widget.Toast;
 import android.widget.TextView;
 import android.widget.LinearLayout;
 
-public class MessageActivity extends Activity {
+public class MessageActivity extends ActionBarActivity implements NavigationDrawerCallbacks{
+	
+	private NavigationDrawerFragment mNavigationDrawerFragment;
 
 	public static final String ICON_SPLIT_SYMBOLS = "|_";
 	
@@ -60,8 +61,8 @@ public class MessageActivity extends Activity {
 	
 	private List<String> messageToSend = new ArrayList<String>();
 	private JSONArray allMessages = new JSONArray();
-	private String activeFriendName = null;
-	private int activeFriendId;
+	private String activeUserName = null;
+	private int activeUserId;
 	private int unReadDialogsCount = 0;
 	
 	private Runnable recieveMessagesRunnable = null;
@@ -187,6 +188,8 @@ public class MessageActivity extends Activity {
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_message);
+		View view = findViewById(R.id.container);
+		view.setVisibility(View.INVISIBLE); //or gone
 		createButtonsFromDrawables();
 		//createButtonsFromAssets();
 		
@@ -202,17 +205,24 @@ public class MessageActivity extends Activity {
         ImageButton btn4 = (ImageButton)findViewById(R.id.imageButton4);
         btn4.setOnClickListener(this);*/
 
+		mNavigationDrawerFragment = (NavigationDrawerFragment)
+                getSupportFragmentManager().findFragmentById(R.id.navigation_drawer);
+		
+		mNavigationDrawerFragment.setUp(
+                R.id.navigation_drawer,
+                (DrawerLayout) findViewById(R.id.drawer_layout));
+		
         Intent intent = getIntent();
         //String activefriend = intent.getStringExtra(FriendsActivity.EXTRA_MESSAGE);
         
-		try {
-			JSONObject activeFriend = new JSONObject(intent.getStringExtra(FriendsActivity.EXTRA_MESSAGE));
-			activeFriendName = activeFriend.getString("first_name") + " " + activeFriend.getString("last_name");
-			activeFriendId = activeFriend.getInt("id");
-		} catch (JSONException e) {
-			// TODO To be handled
-			e.printStackTrace();
-		}
+//		try {
+//			JSONObject activeFriend = new JSONObject(intent.getStringExtra(FriendsActivity.EXTRA_MESSAGE));
+//			activeFriendName = activeFriend.getString("first_name") + " " + activeFriend.getString("last_name");
+//			activeFriendId = activeFriend.getInt("id");
+//		} catch (JSONException e) {
+//			// TODO To be handled
+//			e.printStackTrace();
+//		}
         
         /*TextView txt = (TextView)findViewById(R.id.textView1);
         txt.setText(activeFriendName);*/
@@ -220,17 +230,16 @@ public class MessageActivity extends Activity {
         //decodeTextToImages();
         
         //up button for actionbar
-        getActionBar().setDisplayHomeAsUpEnabled(true);
-        setTitle(activeFriendName);
+        //getActionBar().setDisplayHomeAsUpEnabled(true);
         //getActionBar().setBackgroundDrawable(new ColorDrawable(Color.parseColor("#aaaaaa")));
 	}
 	
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
 		switch (item.getItemId()) {
-		case android.R.id.home:
+		/*case android.R.id.home:
 			NavUtils.navigateUpFromSameTask(this);
-			return true;
+			return true;*/
 		case R.id.action_exit:
 			AlertDialog.Builder builder = new AlertDialog.Builder(this);
 			builder.setMessage("Вы уверены?").setPositiveButton("Да", dialogClickListener).setNegativeButton("Нет", dialogClickListener).show();
@@ -250,7 +259,8 @@ public class MessageActivity extends Activity {
 		case R.id.action_message:
 			if(unReadDialogsCount > 0){
 				//should be changed
-				NavUtils.navigateUpFromSameTask(this);
+				//NavUtils.navigateUpFromSameTask(this);
+				mNavigationDrawerFragment.openDrawer();
 				return true;
 			}
 		default:
@@ -347,7 +357,7 @@ public class MessageActivity extends Activity {
 				nameView.setText("Я");
 				nameView.setTextColor(Color.BLACK);
 			} else {
-				nameView.setText(activeFriendName);
+				nameView.setText(activeUserName);
 				nameView.setTextColor(Color.BLUE);
 			}
 			nameView.setTypeface(null, Typeface.BOLD);
@@ -424,17 +434,6 @@ public class MessageActivity extends Activity {
 	protected void onResume() {
 		super.onResume();
 		VKUIHelper.onResume(this);
-		
-		//first time call with more messages
-		recieveMessageHistory(70);
-		//then as written in recieveMessagePeriodicly
-		recieveMessagePeriodicly();
-		checkUnreadeMessagesPeriodicly();
-		
-		//permission test
-//		VKRequest request = new VKRequest("account.getAppPermissions");
-//		request.executeWithListener(messageSendListener);
-		
 	}
 	
 	public void backButton(View v){
@@ -453,7 +452,7 @@ public class MessageActivity extends Activity {
 	        }
 	        long guId = new Date().getTime();
 	        VKRequest request = new VKRequest("messages.send", VKParameters.from(
-		        		"user_id", String.valueOf(activeFriendId), 
+		        		"user_id", String.valueOf(activeUserId), 
 		        		"message", messageString.toString(), "guid", guId));
 			request.executeWithListener(messageSendListener);
 		}
@@ -468,7 +467,7 @@ public class MessageActivity extends Activity {
 	
 	public void recieveMessageHistory(int messagesCount){
 		if(messagesCount > 0){
-			VKRequest request = new VKRequest("messages.getHistory", VKParameters.from("user_id", activeFriendId, "count", messagesCount));
+			VKRequest request = new VKRequest("messages.getHistory", VKParameters.from("user_id", activeUserId, "count", messagesCount));
 			request.executeWithListener(messageRecieveListener);
 		}
 	}
@@ -751,5 +750,100 @@ public class MessageActivity extends Activity {
 public List<String[]> filterMessages(JSONArray messages) throws JSONException{
 	return filterMessages(messages, false);
 }*/
+	
+	/////////---------------- Newly added ----------------------
+	/// commented for place holder, 
+	////////----------------------------------------------------
+	
+	/**
+     * A placeholder fragment containing a simple view.
+     */
+    /*public static class PlaceholderFragment extends Fragment {
+        *//**
+         * The fragment argument representing the section number for this
+         * fragment.
+         *//*
+        private static final String ARG_SECTION_NUMBER = "section_number";
+
+        *//**
+         * Returns a new instance of this fragment for the given section
+         * number.
+         *//*
+        public static PlaceholderFragment newInstance(int sectionNumber) {
+            PlaceholderFragment fragment = new PlaceholderFragment();
+            Bundle args = new Bundle();
+            args.putInt(ARG_SECTION_NUMBER, sectionNumber);
+            fragment.setArguments(args);
+            return fragment;
+        }
+
+        public PlaceholderFragment() {
+        }
+
+        @Override
+        public View onCreateView(LayoutInflater inflater, ViewGroup container,
+                                 Bundle savedInstanceState) {
+            View rootView = inflater.inflate(R.layout.fragment_main, container, false);
+            return rootView;
+        }
+
+        @Override
+        public void onAttach(Activity activity) {
+            super.onAttach(activity);
+            ((MessageActivity) activity).onSectionAttached(
+                    getArguments().getInt(ARG_SECTION_NUMBER));
+        }
+    }*/
+    
+	
+	//activity should implement 
+	/// NavigationDrawerFragment.NavigationDrawerCallbacks class
+	@Override
+    public void onNavigationDrawerItemSelected(JSONObject user) {
+		String incomingUserName = null;
+		int incomingUserId = -1;
+		try {
+			incomingUserName = user.getString("first_name") + 
+					" " + user.getString("last_name");
+			incomingUserId = user.getInt("id");
+		} catch (JSONException e) {
+			// TODO To be handled
+			e.printStackTrace();
+		}
+		if(incomingUserId != activeUserId){
+			initForUser(user);
+			activeUserName = incomingUserName;
+			activeUserId = incomingUserId;
+			
+			setTitle(activeUserName);
+			//first time call with more messages
+			recieveMessageHistory(70);
+			//then as written in recieveMessagePeriodicly
+			recieveMessagePeriodicly();
+			checkUnreadeMessagesPeriodicly();
+		}
+    }
+    
+	private void initForUser(JSONObject user){
+		LinearLayout historyLayout = (LinearLayout)findViewById(R.id.messageHistory);
+		historyLayout.removeAllViews();
+		LinearLayout formLayout = (LinearLayout)findViewById(R.id.linearLayout1);
+		formLayout.removeAllViews();
+		
+		//method is called first time
+		if(activeUserName == null){
+			View view = findViewById(R.id.container);
+			view.setVisibility(View.VISIBLE);
+			//hide mnacacner@
+		} else{
+			handler.removeCallbacks(recieveMessagesRunnable);
+			handler.removeCallbacks(checkUnreadMessagesRunnable);
+		}
+	}
+	
+	 /*public void onSectionAttached(int number) {
+		 
+	 }
+	 */
 	
 }
