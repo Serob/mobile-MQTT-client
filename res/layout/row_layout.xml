@@ -15,17 +15,36 @@
 
     <TextView 
         android:id="@+id/user_label"
-        android:text="asdfasdf"
         android:layout_marginLeft="30dp"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
 	    android:textAppearance="?android:attr/textAppearanceListItemSmall"
 	    android:minHeight="?android:attr/listPreferredItemHeightSmall"/>
     
-    <ImageView
+    <TextView
         android:id="@+id/has_unread"
         android:layout_width="30dp"
-        android:layout_height="30dp"
-        android:layout_alignParentRight="true"/>
+        android:layout_height="match_parent"
+        android:layout_alignParentRight="true"
+        android:textAppearance="?android:attr/textAppearanceListItemSmall"
+        android:textColor="#FFFFFF"/>
+    
+  <!--   <RelativeLayout 
+        android:layout_width="30dp"
+        android:layout_height="30dp"> 
+        
+	    <ImageView
+	        android:id="@+id/myImageView"
+	        android:layout_width="wrap_content"
+	        android:layout_height="wrap_content" />
+	
+	    <TextView
+	        android:id="@+id/myImageViewText"
+	        android:layout_width="wrap_content"
+	        android:layout_height="wrap_content"
+	        android:layout_margin="1dp"
+	        android:gravity="center"
+	        android:textColor="#000000" />
+ </RelativeLayout> -->
 
 </RelativeLayout >

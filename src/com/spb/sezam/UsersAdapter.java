@@ -1,9 +1,10 @@
 package com.spb.sezam;
 
+import java.util.List;
+
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import android.app.Activity;
 import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -15,15 +16,21 @@ import android.widget.TextView;
 public class UsersAdapter extends ArrayAdapter<JSONObject> {
 
 	private final Context context;
-	private final JSONObject[] users;
+	private final List<JSONObject> users;
 	
 	static class ViewHolder {
 		public TextView text;
 		public ImageView onlineIcon;
-		public ImageView hasMessageIcon;
+		public TextView unreadCount;
 	}
 	
-	public UsersAdapter(Context context, JSONObject[] users) {
+	/*public UsersAdapter(Context context, JSONObject[] users) {
+		super(context, R.layout.row_layout, users);
+		this.context = context;
+		this.users = users;
+	}*/
+	
+	public UsersAdapter(Context context, List<JSONObject> users) {
 		super(context, R.layout.row_layout, users);
 		this.context = context;
 		this.users = users;
@@ -43,31 +50,44 @@ public class UsersAdapter extends ArrayAdapter<JSONObject> {
 			viewHolder.text = (TextView) rowView.findViewById(R.id.user_label);
 			viewHolder.onlineIcon = (ImageView) rowView
 					.findViewById(R.id.online_status);
-			viewHolder.hasMessageIcon = (ImageView) rowView
+			viewHolder.unreadCount = (TextView) rowView
 					.findViewById(R.id.has_unread);
 			rowView.setTag(viewHolder);
 		}
 
 		// fill data
 		ViewHolder holder = (ViewHolder) rowView.getTag();
-		JSONObject user = users[position];
+		JSONObject user = users.get(position);
 		String username = "";
 		int onlineStatus = 0;
+		String unreadMessagesCount = null;
 		try {
 			username = user.getString("first_name") + " "+ user.getString("last_name");
 			onlineStatus = user.getInt("online");
 			// maybe maybe unreadmessage here
+			unreadMessagesCount = user.getString("unread_count");
 		} catch (JSONException e) {
 			e.printStackTrace();
 		}
 
 		holder.text.setText(username);
+		
 		if (onlineStatus == 1) {
 			holder.onlineIcon.setImageResource(R.drawable.online);
 		} else {
 			holder.onlineIcon.setImageResource(R.drawable.ofline);
 		}
-
+		
+		//has unread messages
+		if (unreadMessagesCount != null && !"0".equals(unreadMessagesCount)) {
+			holder.unreadCount.setText("+" + unreadMessagesCount);
+			holder.unreadCount.setBackgroundResource(R.drawable.unread_message);
+		} else {
+			//no unread message
+			holder.unreadCount.setText("");
+			holder.unreadCount.setBackgroundResource(0);
+		}
+		
 		return rowView;
 	}
 

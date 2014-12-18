@@ -10,6 +10,6 @@
     <dimen name="keyboard_height">250dp</dimen>
     <dimen name="new_message_height">100dp</dimen>
     <dimen name="control_button_height">35dp</dimen>
-    <dimen name="scroll_view_height">150dp</dimen>
-    <dimen name="message_history_height">150dp</dimen>
+    <dimen name="scroll_view_height">140dp</dimen>
+    <dimen name="message_history_height">140dp</dimen>
 </resources>

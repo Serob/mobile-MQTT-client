@@ -5,7 +5,9 @@ import java.io.IOException;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -63,11 +65,9 @@ public class MessageActivity extends ActionBarActivity implements NavigationDraw
 	private JSONArray allMessages = new JSONArray();
 	private String activeUserName = null;
 	private int activeUserId;
-	private int unReadDialogsCount = 0;
 	
 	private Runnable recieveMessagesRunnable = null;
 	/** For all Users */
-	private Runnable checkUnreadMessagesRunnable = null;
 	private final Handler handler = new Handler();
 	
 	private Menu menu;
@@ -115,19 +115,22 @@ public class MessageActivity extends ActionBarActivity implements NavigationDraw
 		            }
 		            
 		            //mark received new messages as read
-		            StringBuilder messagsIds = new StringBuilder();
-		            //this approach is not good for first call
-		            for(int i=0; i < length; i++){
-		            	int messId = newMessages.getJSONObject(i).getInt("id");
-		            	messagsIds.append(messId);
-		            	if(i != (length - 1)){
-		            		messagsIds.append(",");
-		            	}
-		            }
-		            VKRequest request = new VKRequest("messages.markAsRead", VKParameters.from(
-			        		"message_ids", messagsIds.toString()));
-					request.executeWithListener(markAsReadListener);
-					//
+		            //should be some trick here to prevent mark as read when drawer is opened
+		            //if(!mNavigationDrawerFragment.isDrawerOpen()){
+			            StringBuilder messagsIds = new StringBuilder();
+			            //this approach is not good for first call
+			            for(int i=0; i < length; i++){
+			            	int messId = newMessages.getJSONObject(i).getInt("id");
+			            	messagsIds.append(messId);
+			            	if(i != (length - 1)){
+			            		messagsIds.append(",");
+			            	}
+			            }
+			            VKRequest request = new VKRequest("messages.markAsRead", VKParameters.from(
+				        		"message_ids", messagsIds.toString()));
+						request.executeWithListener(markAsReadListener);
+						//
+		        	//}
 		            
 	        	}
 	            allMessages = messages;
@@ -145,39 +148,6 @@ public class MessageActivity extends ActionBarActivity implements NavigationDraw
 	
 	private VKRequestListener markAsReadListener  = new VKRequestListener(){
 		
-		@Override
-		public void onError(VKError error) {
-			ActivityUtil.showError(MessageActivity.this, error);
-		}
-	};
-	
-	private VKRequestListener recieveDialogsListener = new VKRequestListener() {
-		
-		@Override
-		public void onComplete(VKResponse response) {
-			try {
-				JSONArray messages = response.json.getJSONObject("response").getJSONArray("items");
-				unReadDialogsCount = messages.length();
-				switch (messages.length()) {
-				case 0:
-					menu.getItem(0).setIcon(R.drawable.count_0);
-					break;
-				case 1:
-					menu.getItem(0).setIcon(R.drawable.count_1);
-					break;
-				case 2:
-					menu.getItem(0).setIcon(R.drawable.count_2);
-					break;
-				default:
-					menu.getItem(0).setIcon(R.drawable.count_many);
-					break;
-				}
-			} catch (JSONException e) {
-				e.printStackTrace();
-			}
-			
-		}
-
 		@Override
 		public void onError(VKError error) {
 			ActivityUtil.showError(MessageActivity.this, error);
@@ -256,13 +226,13 @@ public class MessageActivity extends ActionBarActivity implements NavigationDraw
 			    Toast.makeText(MessageActivity.this, "There are no email clients installed.", Toast.LENGTH_SHORT).show();
 			}
 			return true;
-		case R.id.action_message:
+		/*case R.id.action_message:
 			if(unReadDialogsCount > 0){
 				//should be changed
 				//NavUtils.navigateUpFromSameTask(this);
 				mNavigationDrawerFragment.openDrawer();
 				return true;
-			}
+			}*/
 		default:
 			return super.onOptionsItemSelected(item);
 		}
@@ -280,7 +250,7 @@ public class MessageActivity extends ActionBarActivity implements NavigationDraw
 	        	// ------------------------BAD COPY-----------------------
 	        	if(handler != null){
 	    			handler.removeCallbacks(recieveMessagesRunnable);
-	    			handler.removeCallbacks(checkUnreadMessagesRunnable);
+	    			//handler.removeCallbacks(checkUnreadMessagesRunnable);
 	    		}
 	        	startActivity(VKActivity.class);
 	        	setContentView(R.layout.activity_vk);
@@ -334,6 +304,10 @@ public class MessageActivity extends ActionBarActivity implements NavigationDraw
 	    }
 	};	
 	
+	@Override
+	public void onBackPressed() {
+	    moveTaskToBack(true);
+	}
 	
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
@@ -472,10 +446,7 @@ public class MessageActivity extends ActionBarActivity implements NavigationDraw
 		}
 	}
 	
-	public void checkUnreadeMessages(){
-		VKRequest request = new VKRequest("messages.getDialogs", VKParameters.from("unread", "1", "preview_length", "20"));
-		request.executeWithListener(recieveDialogsListener);
-	}
+	
 	
 	private void addImageNameToSendMessages(String imageName){
 		messageToSend.add(ICON_SPLIT_SYMBOLS + imageName + ICON_SPLIT_SYMBOLS);
@@ -496,7 +467,7 @@ public class MessageActivity extends ActionBarActivity implements NavigationDraw
 		super.onPause();
 		if(handler != null){
 			handler.removeCallbacks(recieveMessagesRunnable);
-			handler.removeCallbacks(checkUnreadMessagesRunnable);
+			//handler.removeCallbacks(checkUnreadMessagesRunnable);
 		}
 	}
 
@@ -516,17 +487,7 @@ public class MessageActivity extends ActionBarActivity implements NavigationDraw
 		handler.postDelayed(recieveMessagesRunnable, 7000);
 	}
 	
-	private void checkUnreadeMessagesPeriodicly() {
-		checkUnreadMessagesRunnable = new Runnable() {
-			public void run() {
-				checkUnreadeMessages();
-				handler.postDelayed(this, 7000);
-			}
-		};
-		
-		unReadDialogsCount = 0;
-		handler.postDelayed(checkUnreadMessagesRunnable, 500);
-	}
+	
 	
 	public JSONArray findNewMessages(JSONArray oldList, JSONArray newList) throws JSONException{
 		if(newList == null || newList.length() == 0){
@@ -820,7 +781,7 @@ public List<String[]> filterMessages(JSONArray messages) throws JSONException{
 			recieveMessageHistory(70);
 			//then as written in recieveMessagePeriodicly
 			recieveMessagePeriodicly();
-			checkUnreadeMessagesPeriodicly();
+			//checkUnreadeMessagesPeriodicly();
 		}
     }
     
@@ -837,7 +798,7 @@ public List<String[]> filterMessages(JSONArray messages) throws JSONException{
 			//hide mnacacner@
 		} else{
 			handler.removeCallbacks(recieveMessagesRunnable);
-			handler.removeCallbacks(checkUnreadMessagesRunnable);
+			//handler.removeCallbacks(checkUnreadMessagesRunnable);
 		}
 	}
 	

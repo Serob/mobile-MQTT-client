@@ -1,5 +1,10 @@
 package com.spb.sezam;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -22,6 +27,7 @@ import android.support.v4.widget.DrawerLayout;
 import android.content.SharedPreferences;
 import android.content.res.Configuration;
 import android.os.Bundle;
+import android.os.Handler;
 import android.preference.PreferenceManager;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -30,9 +36,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
 import android.widget.Button;
-import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.Toast;
 
@@ -72,10 +76,89 @@ public class NavigationDrawerFragment extends Fragment {
     private boolean mFromSavedInstanceState;
     private boolean mUserLearnedDrawer;
     
-    private JSONObject[] friendsJson;
+    private List<JSONObject> users = new ArrayList<>();
+    private UsersAdapter usersAdapter = null;
+    private JSONObject testUser = null;
+    private Map<String, String> usersUnreadMsCount = new HashMap<>();
+	private int unReadDialogsCount = 0;
+    
+    private Runnable usersInfoRunnable = null;
+    private Runnable checkUnreadMessagesRunnable = null;
+	private final Handler handler = new Handler();
 
     private Button headerButton;
+    
+    private Menu menu;
+    
+    //-----------------------VK listeners-----------------------------//
+    private VKRequestListener loadFriendsListener = new VKRequestListener() {
 
+		@Override
+		public void onComplete(VKResponse response) {
+			try {
+				updateUsers(response.json.getJSONObject("response").getJSONArray("items"));
+				//we have adapter with users already
+				//and in this line we have new users
+				updateUnreadeMessagesCounts();
+				//usersAdapter.notifyDataSetChanged();
+			} catch (JSONException e) {
+				e.printStackTrace();
+				ActivityUtil.showError(getActivity(), "Ошибка при обработке списка друзей");
+			}
+		}
+
+		@Override
+		public void onError(VKError error) {
+			ActivityUtil.showError(getActivity(), error);
+		}
+	};
+	
+	private VKRequestListener recieveDialogsListener = new VKRequestListener() {
+		
+		@Override
+		public void onComplete(VKResponse response) {
+			try {
+				JSONArray messages = response.json.getJSONObject("response").getJSONArray("items");
+				unReadDialogsCount = messages.length();
+				
+				JSONObject dialogInfo = null;
+				JSONObject message = null;
+				String unreadCount = null;
+				String userId = null;
+				usersUnreadMsCount.clear();
+				
+				for (int i = 0; i < unReadDialogsCount; i++) {
+					dialogInfo = messages.getJSONObject(i);
+					unreadCount =  dialogInfo.getString("unread");
+					message = dialogInfo.getJSONObject("message");
+					userId = message.getString("user_id");
+					usersUnreadMsCount.put(userId, unreadCount);
+				}
+				
+				updateUnreadeMessagesCounts();
+				
+				switch (messages.length()) {
+				case 0:
+					menu.getItem(0).setIcon(R.drawable.count_0);
+					break;
+				case 1:
+					menu.getItem(0).setIcon(R.drawable.count_1);
+					break;
+				case 2:
+					menu.getItem(0).setIcon(R.drawable.count_2);
+					break;
+				default:
+					menu.getItem(0).setIcon(R.drawable.count_many);
+					break;
+				}
+			} catch (JSONException e) {
+				e.printStackTrace();
+			}
+			
+		}
+	};
+
+	
     public NavigationDrawerFragment() {
     }
 
@@ -99,47 +182,85 @@ public class NavigationDrawerFragment extends Fragment {
         //Verev@ ?????????
         ////////////////----------------
         
-        VKRequest request = VKApi.friends().get(VKParameters.from(VKApiConst.FIELDS, "id,first_name,last_name,sex,bdate"));
-		
-		VKRequestListener loadFriendsListener = new VKRequestListener() {
-
+//        VKRequest request = VKApi.friends().get(VKParameters.from(VKApiConst.FIELDS, "id,first_name,last_name,sex,bdate"));
+//		
+//		request.executeWithListener(loadFriendsListener);
+        recieveUsersInfoPeriodicly();
+        checkUnreadeMessagesPeriodicly();
+    }
+    
+    private void recieveUsersInfoPeriodicly(){
+    	usersInfoRunnable = new Runnable() {
 			@Override
-			public void onComplete(VKResponse response) {
-				try {
-					friendsJson = addTestUser(response.json.getJSONObject("response").getJSONArray("items"));
-					if(mDrawerListView != null){
-						setAdapterForListView(friendsJson);
-					}
-				} catch (JSONException e) {
-					e.printStackTrace();
-					ActivityUtil.showError(getActivity(), "Ошибка при обработке списка друзей");
-				}
+			public void run() {
+				VKRequest request = VKApi.friends().get(VKParameters.from(VKApiConst.FIELDS, "id,first_name,last_name,sex,bdate"));
+				request.executeWithListener(loadFriendsListener);
+				handler.postDelayed(this, 1000*60*5); //every 5 minutes
+				//adapter notify in listener
 			}
-
-			@Override
-			public void onError(VKError error) {
-				ActivityUtil.showError(getActivity(), error);
+		};
+		handler.post(usersInfoRunnable);
+    }
+    
+    /**
+     * Changes users form JSON to list, adds test user in first position, and 
+     * adds '0' as 'unread_count' for each user
+     * @param usersJson Initial users
+     * @throws JSONException
+     */
+    private void updateUsers(JSONArray usersJson) throws JSONException {
+    	//in good way we need to run all over the list and find
+    	//if there is different user, and change its values (especially unread_count)
+    	users.clear();
+    	
+    	int count = usersJson.length();
+    	addTestUser(users);
+		for(int i = 1; i <= count; i++){
+			users.add(usersJson.getJSONObject(i-1).put("unread_count", "0"));
+		}
+	}
+    
+    private void addTestUser(List<JSONObject> users) throws JSONException {
+    	if(testUser == null){
+			//create Sezam Bot for test messages
+			testUser = new JSONObject();
+			testUser.put("last_name", "ТЕСТ");
+			testUser.put("first_name", "СЕЗАМ");
+			testUser.put("id", "53759969"); //old profile ID
+			testUser.put("online", "0");
+			testUser.put("unread_count", "0");
+    	}
+    	users.add(testUser);
+    }
+    
+    private void updateUnreadeMessagesCounts() throws JSONException{
+    	String unreadCount = null;
+    	for(JSONObject user :users){
+    		unreadCount = usersUnreadMsCount.get(user.getString("id"));
+    		if(unreadCount != null){
+    			user.put("unread_count", unreadCount);
+    		} else {
+    			user.put("unread_count", "0");
+    		}
+    	}
+    	usersAdapter.notifyDataSetChanged();
+    }
+    
+    private void checkUnreadeMessages(){
+		VKRequest request = new VKRequest("messages.getDialogs", VKParameters.from("unread", "1", "preview_length", "20"));
+		request.executeWithListener(recieveDialogsListener);
+	}
+    
+    private void checkUnreadeMessagesPeriodicly() {
+		checkUnreadMessagesRunnable = new Runnable() {
+			public void run() {
+				checkUnreadeMessages();
+				handler.postDelayed(this, 7000);
 			}
 		};
 		
-		request.executeWithListener(loadFriendsListener);
-    }
-    
-    private JSONObject[] addTestUser(JSONArray friendsJson) throws JSONException {
-    	int count = friendsJson.length();
-    	JSONObject[] friendsArr = new JSONObject[count+1];
-		//create Sezam Bot for test messages
-		JSONObject testUser = new JSONObject();
-		testUser.put("last_name", "ТЕСТ");
-		testUser.put("first_name", "СЕЗАМ");
-		testUser.put("id", "53759969"); //old profile ID
-		testUser.put("online", "0");
-		friendsArr[0] = testUser;
-		for(int i = 1; i <= count; i++){
-			friendsArr[i] = friendsJson.getJSONObject(i-1);
-		}
-		
-		return friendsArr;
+		unReadDialogsCount = 0;
+		handler.postDelayed(checkUnreadMessagesRunnable, 500);
 	}
 
     @Override
@@ -162,14 +283,12 @@ public class NavigationDrawerFragment extends Fragment {
         }); mDrawerListView.setActivated(false);
        /* Button b = new Button(MainActivity.this);
         b.setText("asd");*/
-        if(friendsJson != null){
-        	setAdapterForListView(friendsJson);
-        }
+        setAdapterForListView(users);
         return mDrawerListView;
     }
     
-    private void setAdapterForListView(JSONObject[] friendsArr){
-    	UsersAdapter usersAdapter = new UsersAdapter(getActionBar().getThemedContext(), friendsArr);
+    private void setAdapterForListView(List<JSONObject> friendsArr){
+    	usersAdapter = new UsersAdapter(getActionBar().getThemedContext(), friendsArr);
     	mDrawerListView.setAdapter(usersAdapter);
         //mDrawerListView.setItemChecked(mCurrentSelectedPosition, true);
     }
@@ -280,6 +399,7 @@ public class NavigationDrawerFragment extends Fragment {
         }
         if (mCallbacks != null) {
             mCallbacks.onNavigationDrawerItemSelected(user);
+            checkUnreadeMessagesPeriodicly();
         }
     }
 
@@ -298,6 +418,13 @@ public class NavigationDrawerFragment extends Fragment {
         super.onDetach();
         mCallbacks = null;
     }
+    
+    @Override
+    public void onDestroy(){
+    	super.onDestroy();
+    	handler.removeCallbacks(usersInfoRunnable);
+    	handler.removeCallbacks(checkUnreadMessagesRunnable);
+    }
 
     @Override
     public void onSaveInstanceState(Bundle outState) {
@@ -312,23 +439,26 @@ public class NavigationDrawerFragment extends Fragment {
         mDrawerToggle.onConfigurationChanged(newConfig);
     }
 
-  /*  @Override
+   @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
         // If the drawer is open, show the global app actions in the action bar. See also
         // showGlobalContextActionBar, which controls the top-left area of the action bar.
-        if (mDrawerLayout != null && isDrawerOpen()) {
+        /*if (mDrawerLayout != null && isDrawerOpen()) {
             //inflater.inflate(R.menu.global, menu);
             showGlobalContextActionBar();
-        }
+        }*/
+	   this.menu = menu;
         super.onCreateOptionsMenu(menu, inflater);
-    }*/
+    }
 
 	@Override
     public boolean onOptionsItemSelected(MenuItem item) {
         if (mDrawerToggle.onOptionsItemSelected(item)) {
             return true;
+        } else if(item.getItemId() == R.id.action_message ){
+			openDrawer();
+			return true;
         }
-        
         return super.onOptionsItemSelected(item);
     }
 
