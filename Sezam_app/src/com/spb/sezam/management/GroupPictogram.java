@@ -3,11 +3,11 @@ package com.spb.sezam.management;
 import java.util.ArrayList;
 import java.util.List;
 
-public class PictogramGroup extends Pictogram {
+public class GroupPictogram extends Pictogram {
 
 	List<Pictogram> innerPictograms = new ArrayList<>();
 	
-	public PictogramGroup(String path) {
+	public GroupPictogram(String path) {
 		super(path);
 	}
 
@@ -27,7 +27,7 @@ public class PictogramGroup extends Pictogram {
 	 * 
 	 * @return {@link List} Which can contain Pictograms and/or PictogramGroups
 	 */
-	public List<Pictogram> getInnerPictoGrPictograms(){
+	public List<Pictogram> getInnerPictograms(){
 		return innerPictograms;
 	}
 

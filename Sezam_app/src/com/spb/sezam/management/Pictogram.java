@@ -4,13 +4,24 @@ import java.io.File;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import android.graphics.drawable.BitmapDrawable;
+
 public class Pictogram {
 	
 	/** Full path of the file/folder (inside assets)*/
 	private String path;
 	
+	private String fileName = null;
+	
+	private BitmapDrawable icon;
+	
 	public Pictogram(String path){
 		this.path = path;
+		Pattern afterLastSlash = Pattern.compile("[^\\" + File.separator + "]([^\\" +  File.separator + "]*)$");
+		Matcher m = afterLastSlash.matcher(path);
+	    if(m.find()){
+	    	fileName = m.group(0);
+	    }
 	}
 
 	public ElementType getType() {
@@ -31,33 +42,39 @@ public class Pictogram {
 	 *  Returns only file/folder name (without path information) 
 	 */
 	public String getFileName(){
-		Pattern afterLastSlash = Pattern.compile("[^\\" + File.separator + "]([^\\" +  File.separator + "]*)$");
-		Matcher m = afterLastSlash.matcher(path);
-	    if(m.find()){
-			return m.group(0);
-	    }
-	    
-	    return null;
+		return fileName;
 	}
 	
 	/**
 	 *  Name as will be seen in the app(without '.jpg', path and other information) 
 	 */
 	public String getName(){
-		String[] texts = path.split(".");
+		if(fileName==null){
+			return null;
+		}
+		String[] texts = fileName.split("\\.");
 		int size = texts.length;
-		if(ElementType.FILE == getType()){
-			//assume size > 1
-			return texts[size-2];
+		if (ElementType.FILE == getType()) {
+			// assume size > 1
+			return texts[size - 2];
 		} else {
-			//assume that there is a dot in a folder's name
-			return texts[size-1];
+			return texts[size - 1];
 		}
 		
-		/*Armen's Varant
-		Pattern regex = Pattern.compile(".*\\.(.*?)\\..*?$");
-		Matcher regexMatcher = regex.matcher(path);
-		return regexMatcher.replaceAll("$1");*/
+		//Armen's Varyant
+		/*Pattern regex = Pattern.compile(".*\\.(.*?)\\..*?$");
+		Matcher regexMatcher = regex.matcher("asd.jpg");
+		return regexMatcher.group(0);*/
+	}
+	
+	
+
+	public BitmapDrawable getIcon() {
+		return icon;
+	}
+
+	public void setIcon(BitmapDrawable icon) {
+		this.icon = icon;
 	}
 
 	@Override
@@ -76,6 +93,11 @@ public class Pictogram {
 		int result = 1;
 		result = prime * result + ((path == null) ? 0 : path.hashCode());
 		return result;
+	}
+
+	@Override
+	public String toString() {
+		return "Pictogram [path=" + path + "]";
 	}
 	
 }

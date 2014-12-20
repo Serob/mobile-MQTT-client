@@ -16,7 +16,11 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import com.spb.sezam.NavigationDrawerFragment.NavigationDrawerCallbacks;
+import com.spb.sezam.adapters.GridViewAdapter;
+import com.spb.sezam.management.Pictogram;
+import com.spb.sezam.management.PictogramManager;
 import com.spb.sezam.utils.ActivityUtil;
+import com.spb.sezam.widged.GridViewItem;
 import com.vk.sdk.VKScope;
 import com.vk.sdk.VKSdk;
 import com.vk.sdk.VKUIHelper;
@@ -28,6 +32,7 @@ import com.vk.sdk.api.VKResponse;
 
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.res.AssetManager;
@@ -44,8 +49,11 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.Menu;
 import android.view.View;
+import android.view.View.OnClickListener;
 import android.view.ViewGroup.LayoutParams;
 import android.widget.Button;
+import android.widget.GridLayout;
+import android.widget.GridView;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.ScrollView;
@@ -53,7 +61,7 @@ import android.widget.Toast;
 import android.widget.TextView;
 import android.widget.LinearLayout;
 
-public class MessageActivity extends ActionBarActivity implements NavigationDrawerCallbacks{
+public class MessageActivity extends ActionBarActivity implements NavigationDrawerCallbacks, IPictogramHolder{
 	
 	private NavigationDrawerFragment mNavigationDrawerFragment;
 
@@ -72,6 +80,10 @@ public class MessageActivity extends ActionBarActivity implements NavigationDraw
 	
 	private Menu menu;
 	
+	private View.OnClickListener onPictogramClickListener ;
+
+	
+	//--------------------------------VK listeners-----------------------------//
 	private VKRequestListener messageSendListener  = new VKRequestListener(){
 
 		@Override
@@ -153,6 +165,8 @@ public class MessageActivity extends ActionBarActivity implements NavigationDraw
 			ActivityUtil.showError(MessageActivity.this, error);
 		}
 	};
+	//---------------------------End of VK listenres---------------------------//
+	
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -162,6 +176,9 @@ public class MessageActivity extends ActionBarActivity implements NavigationDraw
 		view.setVisibility(View.INVISIBLE); //or gone
 		//createButtonsFromDrawables();
 		createButtonsFromAssets();
+		initOnPictogramClickListener();
+		//PictogramManager.getInstance().init(MessageActivity.this);
+		
 		
 		/*ImageButton btn1 = (ImageButton)findViewById(R.id.imageButton1);
         btn1.setOnClickListener(this);
@@ -447,9 +464,8 @@ public class MessageActivity extends ActionBarActivity implements NavigationDraw
 	}
 	
 	
-	
-	private void addImageNameToSendMessages(String imageName){
-		messageToSend.add(ICON_SPLIT_SYMBOLS + imageName + ICON_SPLIT_SYMBOLS);
+	public void addImageNameToSendMessages(String imageName){
+		messageToSend.add(ICON_SPLIT_SYMBOLS + imageName + ICON_SPLIT_SYMBOLS); 
 	}
 
 	private void scorllDown(final ScrollView view) {
@@ -531,7 +547,7 @@ public class MessageActivity extends ActionBarActivity implements NavigationDraw
 	/**
 	 * Uses JAVA reflection
 	 */
-	private void createButtonsFromDrawables(){
+	/*private void createButtonsFromDrawables(){
 		//using reflection
 		LinearLayout lLayout = (LinearLayout) findViewById(R.id.linearLayout2);
 		Field[] drawableFields = R.drawable.class.getFields();
@@ -580,25 +596,27 @@ public class MessageActivity extends ActionBarActivity implements NavigationDraw
 			}
 		}
 		
-	}
+	}*/
 	
 	/**
 	 * Uses assets
 	 */
 	private void createButtonsFromAssets(){
 		AssetManager am = getAssets();
-		LinearLayout lLayout = (LinearLayout) findViewById(R.id.linearLayout2);
-		try {
+		GridView lLayout = (GridView) findViewById(R.id.gridView1);
+		List<Pictogram> list = PictogramManager.getInstance().init(MessageActivity.this).getLinearPicotgrams();
+		lLayout.setAdapter(new GridViewAdapter(MessageActivity.this, MessageActivity.this, list));
+		/*try {
 			for(String name : am.list("test")){
 				ImageButton btn = new ImageButton(MessageActivity.this);
+				
 				//Bitmap a = BitmapFactory.decodeStream(am.open(name));
 				BitmapDrawable bd = new BitmapDrawable(getResources(), am.open("test"+ File.separator + name));
 				LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT);
 				params.leftMargin = 0;
 				
-				
 				//btn.setBackground(bd);
-				//btn.setImageDrawable(bd);
+				btn.setImageDrawable(bd);
 				btn.setLayoutParams(params);
 				lLayout.addView(btn);
 				
@@ -609,7 +627,7 @@ public class MessageActivity extends ActionBarActivity implements NavigationDraw
 			    if(m.find()){
 					name = m.group(0);
 			    }
-				btn.setContentDescription(name);
+				btn.setContentDescription(name); 
 				
 				btn.setOnClickListener(new View.OnClickListener() {
 		            @Override
@@ -638,7 +656,7 @@ public class MessageActivity extends ActionBarActivity implements NavigationDraw
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
-		}
+		}*/
 	}
 	
 	@Override
@@ -801,6 +819,30 @@ public List<String[]> filterMessages(JSONArray messages) throws JSONException{
 			handler.removeCallbacks(recieveMessagesRunnable);
 			//handler.removeCallbacks(checkUnreadMessagesRunnable);
 		}
+	}
+
+	@Override
+	public OnClickListener getOnPictogramClickListener() {
+		return onPictogramClickListener;
+	}
+	
+	private void initOnPictogramClickListener() {
+		onPictogramClickListener = new View.OnClickListener() {
+
+			@Override
+			public void onClick(View view) {
+				LinearLayout piktogram = (LinearLayout) findViewById(R.id.linearLayout1);
+				ImageView image = new ImageView(MessageActivity.this);
+
+				String bgResourceName = (String) view.getContentDescription();
+				addImageNameToSendMessages(bgResourceName);
+
+				//maybe change to tag, because if image in message part scales
+				//it affects to button
+				image.setBackground(((GridViewItem) view).getDrawable());
+				piktogram.addView(image);
+			}
+		};
 	}
 	
 	 /*public void onSectionAttached(int number) {
