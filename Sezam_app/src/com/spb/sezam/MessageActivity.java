@@ -2,6 +2,7 @@ package com.spb.sezam;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Date;
@@ -14,12 +15,24 @@ import java.util.regex.Pattern;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.xmlpull.v1.XmlPullParser;
 
+import com.nostra13.universalimageloader.core.DisplayImageOptions;
+import com.nostra13.universalimageloader.core.ImageLoader;
+import com.nostra13.universalimageloader.core.ImageLoaderConfiguration;
+import com.nostra13.universalimageloader.core.assist.ImageScaleType;
+import com.nostra13.universalimageloader.core.listener.SimpleImageLoadingListener;
 import com.spb.sezam.NavigationDrawerFragment.NavigationDrawerCallbacks;
 import com.spb.sezam.adapters.GridViewAdapter;
+import com.spb.sezam.adapters.GridViewHolder;
+import com.spb.sezam.adapters.SubGroupAdapter;
+import com.spb.sezam.management.ElementType;
+import com.spb.sezam.management.GroupPictogram;
+import com.spb.sezam.management.NameManager;
 import com.spb.sezam.management.Pictogram;
 import com.spb.sezam.management.PictogramManager;
 import com.spb.sezam.utils.ActivityUtil;
+import com.spb.sezam.utils.BitmapDecoder;
 import com.spb.sezam.widged.GridViewItem;
 import com.vk.sdk.VKScope;
 import com.vk.sdk.VKSdk;
@@ -36,9 +49,13 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.res.AssetManager;
+import android.content.res.Resources;
+import android.graphics.Bitmap;
+import android.graphics.Bitmap.CompressFormat;
 import android.graphics.Color;
 import android.graphics.Typeface;
 import android.graphics.drawable.BitmapDrawable;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.v4.app.NavUtils;
@@ -50,12 +67,15 @@ import android.view.MenuItem;
 import android.view.Menu;
 import android.view.View;
 import android.view.View.OnClickListener;
+import android.view.ViewGroup;
 import android.view.ViewGroup.LayoutParams;
+import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.GridLayout;
 import android.widget.GridView;
 import android.widget.ImageButton;
 import android.widget.ImageView;
+import android.widget.ListView;
 import android.widget.ScrollView;
 import android.widget.Toast;
 import android.widget.TextView;
@@ -73,6 +93,12 @@ public class MessageActivity extends ActionBarActivity implements NavigationDraw
 	private JSONArray allMessages = new JSONArray();
 	private String activeUserName = null;
 	private int activeUserId;
+	
+	private SubGroupAdapter subGroupAdapter = null;
+	private GridViewAdapter gridViewAdapter = null;
+	
+	private GridView subGroupsView = null;
+	private GridView pictogramsGridView = null;
 	
 	private Runnable recieveMessagesRunnable = null;
 	/** For all Users */
@@ -172,6 +198,12 @@ public class MessageActivity extends ActionBarActivity implements NavigationDraw
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_message);
+		
+		subGroupsView = (GridView)findViewById(R.id.subGroups_view);
+		pictogramsGridView = (GridView)findViewById(R.id.gridView1);
+		
+		new ManagersInitializer().execute();
+		initImageLoader();
 		View view = findViewById(R.id.container);
 		view.setVisibility(View.INVISIBLE); //or gone
 		//createButtonsFromDrawables();
@@ -598,14 +630,35 @@ public class MessageActivity extends ActionBarActivity implements NavigationDraw
 		
 	}*/
 	
+	
+	
 	/**
 	 * Uses assets
 	 */
 	private void createButtonsFromAssets(){
-		AssetManager am = getAssets();
 		GridView lLayout = (GridView) findViewById(R.id.gridView1);
-		List<Pictogram> list = PictogramManager.getInstance().init(MessageActivity.this).getLinearPicotgrams();
-		lLayout.setAdapter(new GridViewAdapter(MessageActivity.this, MessageActivity.this, list));
+		
+		/*LinearLayout firstLevelGorups = (LinearLayout)findViewById(R.id.linearLayout_groups);
+		List<Pictogram> list = PictogramManager.getInstance().init(MessageActivity.this).getPictograms();
+		
+		NameManager nManager = NameManager.getInstance();
+		XmlPullParser parser = getResources().getXml(R.xml.base);
+		nManager.init(parser);
+		
+		for(Pictogram pic : list){
+			Button group = new Button(MessageActivity.this);
+			String ruName = nManager.getGroupRuName(pic.getPath());
+			group.setText(ruName);
+			LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
+                    LayoutParams.MATCH_PARENT,
+                    LayoutParams.MATCH_PARENT, 1.0f);
+			group.setLayoutParams(params);
+			firstLevelGorups.addView(group);
+		}*/
+		
+		//adapter
+		//lLayout.setAdapter(new GridViewAdapter(MessageActivity.this, MessageActivity.this, list));
+		
 		/*try {
 			for(String name : am.list("test")){
 				ImageButton btn = new ImageButton(MessageActivity.this);
@@ -831,16 +884,33 @@ public List<String[]> filterMessages(JSONArray messages) throws JSONException{
 
 			@Override
 			public void onClick(View view) {
-				LinearLayout piktogram = (LinearLayout) findViewById(R.id.linearLayout1);
-				ImageView image = new ImageView(MessageActivity.this);
-
-				String bgResourceName = (String) view.getContentDescription();
-				addImageNameToSendMessages(bgResourceName);
+				final LinearLayout piktogramsLayout = (LinearLayout) findViewById(R.id.linearLayout1);
+				final ImageView image = new ImageView(MessageActivity.this);
+				getResources().getDimension(R.dimen.new_message_height);
+				
+				
+				int size = (int)getResources().getDimension(R.dimen.new_message_height);
+				//maybe pixel, maybe dp...
+				ViewGroup.LayoutParams par = new LayoutParams(size, size);
+				image.setLayoutParams(par);
+				
+				Pictogram pic = ((GridViewHolder)view.getTag()).getPictogram(); //was set in adapter
+				String picRuName  = NameManager.getInstance().getFileRuName(pic.getPath());
+				addImageNameToSendMessages(picRuName);
 
 				//maybe change to tag, because if image in message part scales
 				//it affects to button
-				image.setBackground(((GridViewItem) view).getDrawable());
-				piktogram.addView(image);
+				
+				ImageLoader imageLoader = ImageLoader.getInstance();
+				imageLoader.displayImage(pic.getPathWithAssests(), image, new SimpleImageLoadingListener() {
+					@Override
+					public void onLoadingComplete(String imageUri, View view, Bitmap loadedImage) {
+						/*BitmapDrawable bd = new BitmapDrawable(getResources(), loadedImage);
+						((ImageView)view).setBackground(bd);*/
+						piktogramsLayout.addView(image);
+					}
+				});
+				//piktogramsLayout.addView(image);
 			}
 		};
 	}
@@ -849,5 +919,146 @@ public List<String[]> filterMessages(JSONArray messages) throws JSONException{
 		 
 	 }
 	 */
+	
+	//------------------Async tasks-------------//
+	
+	private class ManagersInitializer extends AsyncTask<Void, String, Void>{
+
+		@Override
+		protected Void doInBackground(Void... params) {
+			//init PictogramManager
+			PictogramManager.getInstance().init(getAssets());
+			
+			//init NameManager
+			XmlPullParser parser = getResources().getXml(R.xml.base);
+			NameManager.getInstance().init(parser);
+			return null;
+		}
+
+		@Override
+		protected void onPostExecute(Void result) {
+			PictogramManager pManager = PictogramManager.getInstance();
+			NameManager nManager = NameManager.getInstance();
+			LinearLayout firstLevelGorups = (LinearLayout)findViewById(R.id.linearLayout_groups);
+			
+			for(Pictogram pic : pManager.getPictograms()){
+				Button group = new Button(MessageActivity.this);
+				String ruName = nManager.getGroupRuName(pic.getPath());
+				group.setText(ruName);
+				group.setTag(pic);
+				LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
+	                    LayoutParams.MATCH_PARENT,
+	                    LayoutParams.MATCH_PARENT, 1.0f);
+				group.setLayoutParams(params);
+				group.setOnClickListener(new OnClickListener() {
+					@Override
+					public void onClick(View v) {
+						GroupPictogram pic = ((GroupPictogram)v.getTag());
+						updateAdapters(pic.getInnerPictograms());
+					}
+				});
+				firstLevelGorups.addView(group);
+			}
+			
+		}
+	}
+	
+
+	private void updateAdapters(List<Pictogram> pictograms){
+		if(pictograms.size() == 0){
+			updateSubGroupAdapter(pictograms);
+			updatedateGridViewAdapter(pictograms);
+		} else {
+			//assume all other should have the same type
+			if(pictograms.get(0).getType() == ElementType.FILE){
+				updateSubGroupAdapter(new ArrayList<Pictogram>());
+				updatedateGridViewAdapter(pictograms);
+			} else if(pictograms.get(0).getType() == ElementType.GROUP){
+				updateSubGroupAdapter(pictograms);
+				updatedateGridViewAdapter(new ArrayList<Pictogram>());
+			}
+		}
+		
+	}
+	
+	private void updateSubGroupAdapter(List<Pictogram> pictograms){
+		if(subGroupAdapter == null){
+			subGroupAdapter = new SubGroupAdapter(MessageActivity.this, pictograms);
+			subGroupsView.setAdapter(subGroupAdapter);
+			subGroupsView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+				@Override
+				public void onItemClick(AdapterView<?> parent, View view,int position, long id) {
+					GroupPictogram gp = (GroupPictogram)subGroupsView.getItemAtPosition(position);
+					updatedateGridViewAdapter(gp.getInnerPictograms());
+				}
+			});
+			
+		} else {
+			subGroupAdapter.updateView(pictograms);
+			
+		}
+	}
+	
+		
+	private void updatedateGridViewAdapter(List<Pictogram> pictograms){
+			if(gridViewAdapter == null){
+				gridViewAdapter = new GridViewAdapter(MessageActivity.this, MessageActivity.this, pictograms);
+				pictogramsGridView.setAdapter(gridViewAdapter);
+				//Not allowed for imageButton 
+				//must be changed to ImageView
+				/*pictogramsGridView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+					@Override
+					public void onItemClick(AdapterView<?> parent, View view,int position, long id) {
+						Pictogram pic = (Pictogram)pictogramsGridView.getItemAtPosition(position);
+						
+						
+						LinearLayout piktogramsLayout = (LinearLayout) findViewById(R.id.linearLayout1);
+						ImageView image = new ImageView(MessageActivity.this);
+
+						String picRuName = NameManager.getInstance().getFileRuName(pic.getPath());
+						addImageNameToSendMessages(picRuName);
+
+						//maybe change to tag, because if image in message part scales
+						//it affects to button
+						
+						ImageLoader imageLoader = ImageLoader.getInstance();
+						imageLoader.displayImage(pic.getPathWithAssests(), image, new SimpleImageLoadingListener() {
+							@Override
+							public void onLoadingComplete(String imageUri, View view, Bitmap loadedImage) {
+								BitmapDrawable bd = new BitmapDrawable(getResources(), loadedImage);
+								((ImageView)view).setBackground(bd);
+							}
+						});
+						piktogramsLayout.addView(image);
+						Log.e("asd", "asd");
+						
+					}
+				});*/
+			} else {
+				gridViewAdapter.updateView(pictograms);
+			}
+		}
+	
+	//------------------End of Async tasks-------------//
+	
+	
+	private void initImageLoader(){
+		//Get the imageloader.
+		ImageLoader imageLoader = ImageLoader.getInstance();
+		
+		//Create image options.
+		DisplayImageOptions options = new DisplayImageOptions.Builder()
+	    .cacheInMemory(true)
+	    .bitmapConfig(Bitmap.Config.ALPHA_8) //because our images are black/white
+	    .build();
+		
+		//Create a config with those options.
+		ImageLoaderConfiguration config = new ImageLoaderConfiguration.Builder(getApplicationContext())
+		.defaultDisplayImageOptions(options)
+	    .build(); 
+		
+		//Initialize the imageloader.
+		imageLoader.init(config);
+	}
 	
 }

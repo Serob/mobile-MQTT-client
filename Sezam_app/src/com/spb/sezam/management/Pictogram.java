@@ -1,17 +1,21 @@
 package com.spb.sezam.management;
 
 import java.io.File;
+import java.util.Comparator;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import android.graphics.Bitmap;
 import android.graphics.drawable.BitmapDrawable;
 
-public class Pictogram {
+public class Pictogram  implements Comparable<Pictogram>{
 	
 	/** Full path of the file/folder (inside assets)*/
 	private String path;
 	
 	private String fileName = null;
+	
+	private float number = 0;
 	
 	private BitmapDrawable icon;
 	
@@ -22,7 +26,16 @@ public class Pictogram {
 	    if(m.find()){
 	    	fileName = m.group(0);
 	    }
+	    if(fileName != null){
+	    	Pattern beforeDotAndLetter = Pattern.compile("^.*?(?=.[a-zA-Z])");
+	    	m = beforeDotAndLetter.matcher(fileName);
+	    	if(m.find()){
+	    		number = Float.parseFloat(m.group(0));
+	    	}
+	    	//otherwise number=0
+	    }
 	}
+	
 
 	public ElementType getType() {
 		return ElementType.FILE;
@@ -67,15 +80,28 @@ public class Pictogram {
 		return regexMatcher.group(0);*/
 	}
 	
+	public String getPathWithAssests(){
+		return "assets://" + PictogramManager.BASE_FOLDER +
+				 File.separator + path;
+	}
 	
 
-	public BitmapDrawable getIcon() {
+	/**
+	 * @return Number before file's name.
+	 * If there is no number, then returns 0.
+	 */
+	public float getNumber() {
+		return number;
+	}
+
+
+	/*public BitmapDrawable getIcon() {
 		return icon;
 	}
 
 	public void setIcon(BitmapDrawable icon) {
 		this.icon = icon;
-	}
+	}*/
 
 	@Override
 	public boolean equals(Object obj) {
@@ -98,6 +124,11 @@ public class Pictogram {
 	@Override
 	public String toString() {
 		return "Pictogram [path=" + path + "]";
+	}
+
+	@Override
+	public int compareTo(Pictogram pictogram) {
+		return  Float.valueOf(this.number).compareTo(pictogram.getNumber());
 	}
 	
 }

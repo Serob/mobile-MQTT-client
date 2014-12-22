@@ -27,6 +27,27 @@
 	            android:orientation="horizontal" >
 	        </LinearLayout> -->
 	        
+	         <LinearLayout
+	            android:id="@+id/linearLayout_groups"
+	            android:layout_width="wrap_content"
+	            android:layout_height="@dimen/pictogram_group_height"
+	            android:layout_above="@+id/subGroups_view"
+	            android:layout_alignParentLeft="true"
+	            android:layout_alignParentRight="true"
+	            android:background="#CCCCCC"
+	            android:orientation="horizontal" >
+	             
+	         </LinearLayout>
+	         
+	         <GridView
+	            android:id="@+id/subGroups_view"
+	            android:layout_width="wrap_content"
+	            android:layout_height="@dimen/pictogram_group_height"
+	            android:layout_above="@+id/gridView1"
+	            android:background="#CCCCCC"
+	            android:orientation="horizontal"
+	            android:numColumns="10" />
+	        
 	        <GridView 
 	            android:id="@+id/gridView1"
 	            android:layout_width="wrap_content"
@@ -38,15 +59,15 @@
 
 	        <RelativeLayout
 	            android:id="@+id/relativeLayout1"
-	            android:layout_width="fill_parent"
+	            android:layout_width="match_parent"
 	            android:layout_height="100dp"
-	            android:layout_above="@+id/gridView1"
+	            android:layout_above="@+id/linearLayout_groups"
 	            android:layout_alignParentLeft="true"
 	            android:background="#22DD33" >
 
 	            <LinearLayout
 	                android:id="@+id/linearLayout1"
-	                android:layout_width="fill_parent"
+	                android:layout_width="match_parent"
 	                android:layout_height="@dimen/new_message_height"
 	                android:layout_alignParentLeft="true"
 	                android:orientation="horizontal" >

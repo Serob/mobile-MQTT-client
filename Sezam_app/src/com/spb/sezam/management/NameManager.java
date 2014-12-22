@@ -10,6 +10,8 @@ import org.xmlpull.v1.XmlPullParserException;
 import android.content.res.XmlResourceParser;
 import android.util.Log;
 
+/** Some kind of mix of singleton/factory
+ */
 public class NameManager {
 
 	private static NameManager instance = null;
@@ -18,6 +20,7 @@ public class NameManager {
 	private Map<String, String> filesRuKey = new HashMap<>();
 	private Map<String, String> groupsEngKey = new HashMap<>();
 	private Map<String, String> groupsRuKey = new HashMap<>();
+	private boolean isInitialized = false;
 	
 	//public static String FILE_TAG = "file";
 	//public static String GROUP_TAG = "group";
@@ -28,26 +31,35 @@ public class NameManager {
 	public static NameManager getInstance() {
 		if(instance == null){
 			instance = new NameManager();
+
 		}
 		return instance;
 	}
 	
 	public void init(XmlPullParser parser){
-		 try {
+		if (parser == null) {
+			throw new IllegalArgumentException("Wrong XmlPullPareser!");
+		}
+		if(isInitialized){
+			Log.w("Reinit", "NameManager is already initialized");
+			return;
+		}
+		try {
 			int eventType = parser.getEventType();
-			while (eventType != XmlPullParser.END_DOCUMENT){
-				if(eventType == XmlPullParser.START_TAG){
+			while (eventType != XmlPullParser.END_DOCUMENT) {
+				if (eventType == XmlPullParser.START_TAG) {
 					addValuesToMaps(parser);
 				}
 				eventType = parser.next();
 			}
 		} catch (XmlPullParserException | IOException e) {
-			//clearAllMaps();
+			// clearAllMaps();
 			e.printStackTrace();
-		} finally{
-			if (parser instanceof XmlResourceParser){
+		} finally {
+			if (parser instanceof XmlResourceParser) {
 				((XmlResourceParser) parser).close();
 			}
+			isInitialized = true;
 		}
 	}
 	

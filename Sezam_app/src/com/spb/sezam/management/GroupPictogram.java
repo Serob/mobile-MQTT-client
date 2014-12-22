@@ -24,11 +24,14 @@ public class GroupPictogram extends Pictogram {
 	}
 	
 	/**
-	 * 
 	 * @return {@link List} Which can contain Pictograms and/or PictogramGroups
 	 */
 	public List<Pictogram> getInnerPictograms(){
 		return innerPictograms;
 	}
 
+	@Override
+	public String toString() {
+		return "GroupPictogram [path=" + getPath() + "]";
+	}
 }

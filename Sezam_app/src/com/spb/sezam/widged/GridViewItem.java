@@ -4,6 +4,11 @@ import android.content.Context;
 import android.util.AttributeSet;
 import android.widget.ImageButton;
 
+/**
+ * For square elements
+ * @author Serob
+ *
+ */
 public class GridViewItem extends ImageButton {
 	public GridViewItem(Context context) {
         super(context);
