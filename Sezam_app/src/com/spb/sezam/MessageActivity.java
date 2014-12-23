@@ -180,7 +180,7 @@ public class MessageActivity extends ActionBarActivity implements NavigationDraw
 
 		@Override
 		public void onError(VKError error) {
-			ActivityUtil.showError(MessageActivity.this, error);
+			//ActivityUtil.showError(MessageActivity.this, error);
 		}
 	};
 	
@@ -424,16 +424,30 @@ public class MessageActivity extends ActionBarActivity implements NavigationDraw
 		ImageView image = new ImageView(MessageActivity.this);
 		
 		int bgResourceId;
-		try {
-			bgResourceId = R.drawable.class.getField(text).getInt(null);
-			image.setBackgroundResource(bgResourceId);
-			lLayout.addView(image);
-		} catch (IllegalAccessException | IllegalArgumentException e) {
+		//try {
+			/*bgResourceId = R.drawable.class.getField(text).getInt(null);
+			image.setBackgroundResource(bgResourceId);*/
+			/////////////
+			int size = (int)getResources().getDimension(R.dimen.new_message_height);
+			setImageViewSize(image, (int)(size/1.2));
+			
+			String path = NameManager.getInstance().getFileEngName(text);
+			if(path != null){
+				String pathWithAssets = "assets://" + PictogramManager.BASE_FOLDER + File.separator + path ;
+				ImageLoader.getInstance().displayImage(pathWithAssets, image);
+				lLayout.addView(image);
+			} else {
+				showTextAsString(text, lLayout);
+			}
+			
+			
+		/*} catch (IllegalAccessException | IllegalArgumentException e) {
 			e.printStackTrace();
 		} catch (NoSuchFieldException e) {
 			showTextAsString(text, lLayout);
-		}
+		}*/
 		
+			
 		/*if("чувствовать".equals(text)){
 			image.setBackgroundResource(R.drawable.image_1_thumb);
 		} else if("я".equals(text)){
@@ -501,14 +515,17 @@ public class MessageActivity extends ActionBarActivity implements NavigationDraw
 	}
 
 	private void scorllDown(final ScrollView view) {
+		setScrollViewDirection(view, ScrollView.FOCUS_DOWN);
+	}
+	
+	private void setScrollViewDirection(final ScrollView view, final int direction){
 		view.post(new Runnable() {
 	        @Override
 	        public void run() {
-	        	view.fullScroll(ScrollView.FOCUS_DOWN);
+	        	view.fullScroll(direction);
 	        }
 	    });
-	} 
-
+	}
 	
 	@Override
 	protected void onPause() {
@@ -528,11 +545,11 @@ public class MessageActivity extends ActionBarActivity implements NavigationDraw
 		recieveMessagesRunnable = new Runnable() {
 			public void run() {
 				recieveMessageHistory(MESSAGE_RECIEVE_COUNT);
-				handler.postDelayed(this, 7000);
+				handler.postDelayed(this, 4000);
 			}
 		};
 		
-		handler.postDelayed(recieveMessagesRunnable, 7000);
+		handler.postDelayed(recieveMessagesRunnable, 4000);
 	}
 	
 	
@@ -850,7 +867,7 @@ public List<String[]> filterMessages(JSONArray messages) throws JSONException{
 			
 			setTitle(activeUserName);
 			//first time call with more messages
-			recieveMessageHistory(70);
+			recieveMessageHistory(50); 
 			//then as written in recieveMessagePeriodicly
 			recieveMessagePeriodicly();
 			//checkUnreadeMessagesPeriodicly();
@@ -862,11 +879,15 @@ public List<String[]> filterMessages(JSONArray messages) throws JSONException{
 		historyLayout.removeAllViews();
 		LinearLayout formLayout = (LinearLayout)findViewById(R.id.linearLayout1);
 		formLayout.removeAllViews();
+		messageToSend.clear();
 		
 		//method is called first time
 		if(activeUserName == null){
 			View view = findViewById(R.id.container);
 			view.setVisibility(View.VISIBLE);
+			
+			View helloView = findViewById(R.id.helloView);
+			helloView.setVisibility(View.GONE);
 			//hide mnacacner@
 		} else{
 			handler.removeCallbacks(recieveMessagesRunnable);
@@ -879,6 +900,16 @@ public List<String[]> filterMessages(JSONArray messages) throws JSONException{
 		return onPictogramClickListener;
 	}
 	
+	/**
+	 * For square images
+	 * @param image
+	 * @param size
+	 */
+	private void setImageViewSize(ImageView image, int size){
+		ViewGroup.LayoutParams par = new LayoutParams(size, size);
+		image.setLayoutParams(par);
+	}
+	
 	private void initOnPictogramClickListener() {
 		onPictogramClickListener = new View.OnClickListener() {
 
@@ -888,11 +919,9 @@ public List<String[]> filterMessages(JSONArray messages) throws JSONException{
 				final ImageView image = new ImageView(MessageActivity.this);
 				getResources().getDimension(R.dimen.new_message_height);
 				
-				
+				//translated to pixels
 				int size = (int)getResources().getDimension(R.dimen.new_message_height);
-				//maybe pixel, maybe dp...
-				ViewGroup.LayoutParams par = new LayoutParams(size, size);
-				image.setLayoutParams(par);
+				setImageViewSize(image, size);
 				
 				Pictogram pic = ((GridViewHolder)view.getTag()).getPictogram(); //was set in adapter
 				String picRuName  = NameManager.getInstance().getFileRuName(pic.getPath());
@@ -926,12 +955,13 @@ public List<String[]> filterMessages(JSONArray messages) throws JSONException{
 
 		@Override
 		protected Void doInBackground(Void... params) {
+			//init NameManager
+			XmlPullParser parser = getResources().getXml(R.xml.catalog);
+			NameManager.getInstance().init(parser);
+			
 			//init PictogramManager
 			PictogramManager.getInstance().init(getAssets());
 			
-			//init NameManager
-			XmlPullParser parser = getResources().getXml(R.xml.base);
-			NameManager.getInstance().init(parser);
 			return null;
 		}
 
@@ -941,10 +971,12 @@ public List<String[]> filterMessages(JSONArray messages) throws JSONException{
 			NameManager nManager = NameManager.getInstance();
 			LinearLayout firstLevelGorups = (LinearLayout)findViewById(R.id.linearLayout_groups);
 			
+			//create view for first level groups
 			for(Pictogram pic : pManager.getPictograms()){
 				Button group = new Button(MessageActivity.this);
 				String ruName = nManager.getGroupRuName(pic.getPath());
 				group.setText(ruName);
+				group.setTextSize(14);
 				group.setTag(pic);
 				LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
 	                    LayoutParams.MATCH_PARENT,
@@ -1037,6 +1069,7 @@ public List<String[]> filterMessages(JSONArray messages) throws JSONException{
 			} else {
 				gridViewAdapter.updateView(pictograms);
 			}
+			pictogramsGridView.smoothScrollToPosition(0);
 		}
 	
 	//------------------End of Async tasks-------------//
