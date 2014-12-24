@@ -62,9 +62,11 @@ import android.support.v4.app.NavUtils;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarActivity;
 import android.util.Log;
+import android.util.TypedValue;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.Menu;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.ViewGroup;
@@ -188,7 +190,7 @@ public class MessageActivity extends ActionBarActivity implements NavigationDraw
 		
 		@Override
 		public void onError(VKError error) {
-			ActivityUtil.showError(MessageActivity.this, error);
+		//	ActivityUtil.showError(MessageActivity.this, error);
 		}
 	};
 	//---------------------------End of VK listenres---------------------------//
@@ -266,7 +268,7 @@ public class MessageActivity extends ActionBarActivity implements NavigationDraw
 		case R.id.action_email:
 			Intent i = new Intent(Intent.ACTION_SEND);
 			i.setType("text/plain");
-			i.putExtra(Intent.EXTRA_EMAIL  , new String[]{"annainternest@gmail.com"});
+			i.putExtra(Intent.EXTRA_EMAIL  , new String[]{"annasezam@gmail.com"});
 			i.putExtra(Intent.EXTRA_SUBJECT, "Письмо администратору");
 			i.putExtra(Intent.EXTRA_TEXT   , "\nОтправлено с приложения Sezam");
 			try {
@@ -274,6 +276,18 @@ public class MessageActivity extends ActionBarActivity implements NavigationDraw
 			} catch (android.content.ActivityNotFoundException ex) {
 			    Toast.makeText(MessageActivity.this, "There are no email clients installed.", Toast.LENGTH_SHORT).show();
 			}
+			return true;
+		case R.id.action_about:
+			AlertDialog.Builder aboutBuilder = new AlertDialog.Builder(this);
+			aboutBuilder.setMessage("Версия: 0.1-Alpha.")
+		       .setCancelable(false)
+		       .setPositiveButton("ОК", new DialogInterface.OnClickListener() {
+		           public void onClick(DialogInterface dialog, int id) {
+		                return;
+		           }
+		       });
+			AlertDialog alert = aboutBuilder.create();
+			alert.show();
 			return true;
 		/*case R.id.action_message:
 			if(unReadDialogsCount > 0){
@@ -976,7 +990,8 @@ public List<String[]> filterMessages(JSONArray messages) throws JSONException{
 				Button group = new Button(MessageActivity.this);
 				String ruName = nManager.getGroupRuName(pic.getPath());
 				group.setText(ruName);
-				group.setTextSize(14);
+				int fontSize = (int)getResources().getDimension(R.dimen.button_font_size);
+				group.setTextSize(TypedValue.COMPLEX_UNIT_PX, fontSize);
 				group.setTag(pic);
 				LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
 	                    LayoutParams.MATCH_PARENT,
@@ -1007,7 +1022,7 @@ public List<String[]> filterMessages(JSONArray messages) throws JSONException{
 				updatedateGridViewAdapter(pictograms);
 			} else if(pictograms.get(0).getType() == ElementType.GROUP){
 				updateSubGroupAdapter(pictograms);
-				updatedateGridViewAdapter(new ArrayList<Pictogram>());
+				updatedateGridViewAdapter(((GroupPictogram)pictograms.get(0)).getInnerPictograms());
 			}
 		}
 		
@@ -1024,6 +1039,16 @@ public List<String[]> filterMessages(JSONArray messages) throws JSONException{
 					updatedateGridViewAdapter(gp.getInnerPictograms());
 				}
 			});
+			//not allow to scroll
+			/*subGroupsView.setOnTouchListener(new View.OnTouchListener() {
+				@Override
+				public boolean onTouch(View v, MotionEvent event) {
+					if(event.getAction() == MotionEvent.ACTION_MOVE){
+			            return true;
+			        }
+			        return false;
+				}
+			});*/
 			
 		} else {
 			subGroupAdapter.updateView(pictograms);
@@ -1070,6 +1095,7 @@ public List<String[]> filterMessages(JSONArray messages) throws JSONException{
 				gridViewAdapter.updateView(pictograms);
 			}
 			pictogramsGridView.smoothScrollToPosition(0);
+			//pictogramsGridView.smoothScrollToPositionFromTop(0, 0, 1);
 		}
 	
 	//------------------End of Async tasks-------------//

@@ -27,6 +27,7 @@ import android.support.v4.app.ActionBarDrawerToggle;
 import android.support.v4.widget.DrawerLayout;
 import android.content.SharedPreferences;
 import android.content.res.Configuration;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.os.Handler;
 import android.preference.PreferenceManager;
@@ -39,6 +40,7 @@ import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.ListView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 /**
@@ -110,7 +112,7 @@ public class NavigationDrawerFragment extends Fragment {
 
 		@Override
 		public void onError(VKError error) {
-			ActivityUtil.showError(getActivity(), error);
+			//ActivityUtil.showError(getActivity(), error);
 		}
 	};
 	
@@ -137,6 +139,10 @@ public class NavigationDrawerFragment extends Fragment {
 				}
 				
 				updateUnreadeMessagesCounts();
+				//menu.getItem(0).setTitle(String.valueOf(messages.length()));
+				//or
+				//TextView tView = new TextView(getActivity());
+				//menu.getItem(0).setActionView(tView);
 				
 				switch (messages.length()) {
 				case 0:
@@ -147,6 +153,9 @@ public class NavigationDrawerFragment extends Fragment {
 					break;
 				case 2:
 					menu.getItem(0).setIcon(R.drawable.count_2);
+					break;
+				case 3:
+					menu.getItem(0).setIcon(R.drawable.count_3);
 					break;
 				default:
 					menu.getItem(0).setIcon(R.drawable.count_many);
@@ -195,7 +204,8 @@ public class NavigationDrawerFragment extends Fragment {
 			@Override
 			public void run() {
 				VKRequest request = VKApi.friends().get(VKParameters.from(VKApiConst.FIELDS, "id,first_name,last_name,sex,bdate"));
-				request.executeWithListener(loadFriendsListener);
+				request.setPreferredLang("ru");
+				request.executeWithListener(loadFriendsListener); 
 				handler.postDelayed(this, 1000*60*5); //every 5 minutes
 				//adapter notify in listener
 			}
@@ -225,8 +235,8 @@ public class NavigationDrawerFragment extends Fragment {
     	if(testUser == null){
 			//create Sezam Bot for test messages
 			testUser = new JSONObject();
-			testUser.put("last_name", "ÒÅÑÒ");
-			testUser.put("first_name", "ÑÅÇÀÌ");
+			testUser.put("last_name", "");
+			testUser.put("first_name", "ÊÎÌÌÓÍÈÊÀÒÎÐ");
 			testUser.put("id", "53759969"); //old profile ID
 			testUser.put("online", "0");
 			testUser.put("unread_count", "0");
@@ -256,7 +266,7 @@ public class NavigationDrawerFragment extends Fragment {
 		checkUnreadMessagesRunnable = new Runnable() {
 			public void run() {
 				checkUnreadeMessages();
-				handler.postDelayed(this, 7000);
+				handler.postDelayed(this, 4000);
 			}
 		};
 		
@@ -372,7 +382,7 @@ public class NavigationDrawerFragment extends Fragment {
         // If the user hasn't 'learned' about the drawer, open it to introduce them to the drawer,
         // per the navigation drawer design guidelines.
         if (!mUserLearnedDrawer && !mFromSavedInstanceState) {
-            mDrawerLayout.openDrawer(mFragmentContainerView);
+            //mDrawerLayout.openDrawer(mFragmentContainerView);
         }
 
         // Defer code dependent on restoration of previous instance state.
@@ -457,7 +467,9 @@ public class NavigationDrawerFragment extends Fragment {
         if (mDrawerToggle.onOptionsItemSelected(item)) {
             return true;
         } else if(item.getItemId() == R.id.action_message ){
-			openDrawer();
+        	if(unReadDialogsCount > 0){
+        		openDrawer();
+        	}
 			return true;
         }
         return super.onOptionsItemSelected(item);
