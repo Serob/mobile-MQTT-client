@@ -1,8 +1,8 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:Sezam="http://schemas.android.com/apk/res-auto" >
-	<item
+	<!-- <item
 	    android:id="@+id/action_message"
-	    Sezam:showAsAction="always"/>
+	    Sezam:showAsAction="always"/> -->
 	<item android:id="@+id/action_email"	
 		android:title="Обратная связь"
 		Sezam:showAsAction="never" />	

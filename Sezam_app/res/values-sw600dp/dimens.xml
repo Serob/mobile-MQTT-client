@@ -15,5 +15,10 @@
     <dimen name="control_button_height">35dp</dimen>
     <dimen name="control_button_width">50dp</dimen>
     
+    <dimen name="start_text_height">110dp</dimen>
+    
+    <dimen name="start_title_size">22sp</dimen>
+    <dimen name="start_text_size">18sp</dimen>
     <dimen name="button_font_size">13sp</dimen>
+    
 </resources>

@@ -466,12 +466,12 @@ public class NavigationDrawerFragment extends Fragment {
     public boolean onOptionsItemSelected(MenuItem item) {
         if (mDrawerToggle.onOptionsItemSelected(item)) {
             return true;
-        } else if(item.getItemId() == R.id.action_message ){
+        } /*else if(item.getItemId() == R.id.action_message ){
         	if(unReadDialogsCount > 0){
         		openDrawer();
         	}
 			return true;
-        }
+        }*/
         return super.onOptionsItemSelected(item);
     }
 

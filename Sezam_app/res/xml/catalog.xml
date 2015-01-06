@@ -337,7 +337,7 @@
 	       file_name="4.dejstvija/2.2.zabyvat.jpg" 
 	       ru_name="забывать"/>
 	<file 
-	       file_name="4.dejstvija/2.spat.jpg" 
+	       file_name="4.dejstvija/13.spat.jpg" 
 	       ru_name="спать"/>
 	<file 
 	       file_name="4.dejstvija/3.zhdat.jpg" 
@@ -382,25 +382,25 @@
 	       file_name="4.dejstvija/13.1.podnimatsja.jpg" 
 	       ru_name="подниматься"/>
 	<file 
-	       file_name="4.dejstvija/13.otdyhat.jpg" 
+	       file_name="4.dejstvija/13.2.otdyhat.jpg" 
 	       ru_name="отдыхать"/>
 	<file 
 	       file_name="4.dejstvija/14.zanjatija.jpg" 
 	       ru_name="занятия"/>	
 	<file 
-	       file_name="4.dejstvija/15.1.uchitsja.jpg" 
+	       file_name="4.dejstvija/15.uchitsja.jpg" 
 	       ru_name="учиться"/>
 	<file 
-	       file_name="4.dejstvija/15.chitat.jpg" 
+	       file_name="4.dejstvija/15.1.chitat.jpg" 
 	       ru_name="читать"/>
 	<file 
 	       file_name="4.dejstvija/16.pisat.jpg" 
 	       ru_name="писать"/>
 	<file 
-	       file_name="4.dejstvija/17.1.schitat.jpg" 
+	       file_name="4.dejstvija/17.schitat.jpg" 
 	       ru_name="считать"/>	
 	<file 
-	       file_name="4.dejstvija/17.igrat.jpg" 
+	       file_name="4.dejstvija/17.1.igrat.jpg" 
 	       ru_name="играть"/>
 	<file 
 	       file_name="4.dejstvija/18.1.lovit.jpg" 
@@ -454,7 +454,7 @@
 	       file_name="4.dejstvija/26.7.delit.jpg" 
 	       ru_name="делить"/>
 	<file 
-	       file_name="4.dejstvija/26.mytsja.jpg" 
+	       file_name="4.dejstvija/26.8.mytsja.jpg" 
 	       ru_name="мыться"/>
 	<file 
 	       file_name="4.dejstvija/27.myt_ruki.jpg" 
@@ -472,7 +472,7 @@
 	       file_name="4.dejstvija/29.3.vytiratsja.jpg" 
 	       ru_name="вытираться"/>	
 	<file 
-	       file_name="4.dejstvija/29.mochitsja.jpg" 
+	       file_name="4.dejstvija/29.4.mochitsja.jpg" 
 	       ru_name="мочиться"/>
 	<file 
 	       file_name="4.dejstvija/30.pit.jpg" 
@@ -481,7 +481,7 @@
 	       file_name="4.dejstvija/31.kushat.jpg" 
 	       ru_name="кушать"/>
 	<file 
-	       file_name="4.dejstvija/32.1.probovat.jpg" 
+	       file_name="4.dejstvija/31.1.probovat.jpg" 
 	       ru_name="пробовать"/>
 	<file 
 	       file_name="4.dejstvija/32.dyshat.jpg" 
@@ -697,13 +697,13 @@
 	       file_name="5.opisanie/18.nizkij.jpg" 
 	       ru_name="низкий"/>
 	<file 
-	       file_name="5.opisanie/19.1.vysokij.jpg" 
+	       file_name="5.opisanie/19.vysokij.jpg" 
 	       ru_name="высокий"/>
 	<file 
-	       file_name="5.opisanie/19.uzkij.jpg" 
+	       file_name="5.opisanie/19.1.uzkij.jpg" 
 	       ru_name="узкий"/>
 	<file 
-	       file_name="5.opisanie/20.1.shirokij.jpg" 
+	       file_name="5.opisanie/19.2.shirokij.jpg" 
 	       ru_name="широкий"/>
 	<file 
 	       file_name="5.opisanie/20.sinij.jpg" 
@@ -1198,10 +1198,10 @@
 	       file_name="7.obshhenie/6.ploho.jpg" 
 	       ru_name="плохо"/>
 	<file 
-	       file_name="7.obshhenie/7.1.prekrasno.jpg" 
+	       file_name="7.obshhenie/7.prekrasno.jpg" 
 	       ru_name="прекрасно"/>
 	<file 
-	       file_name="7.obshhenie/7.hotet.jpg" 
+	       file_name="7.obshhenie/7.1.hotet.jpg" 
 	       ru_name="хотеть"/>
 	<file 
 	       file_name="7.obshhenie/8.1.nezhelat.jpg" 
@@ -1210,7 +1210,7 @@
 	       file_name="7.obshhenie/8.2.nravitsja.jpg" 
 	       ru_name="нравится"/>
 	<file 
-	       file_name="7.obshhenie/8.da.jpg" 
+	       file_name="7.obshhenie/8.3.da.jpg" 
 	       ru_name="да"/>
 	<file 
 	       file_name="7.obshhenie/9.net.jpg" 

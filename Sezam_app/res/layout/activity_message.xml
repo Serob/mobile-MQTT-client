@@ -17,21 +17,28 @@
 	         android:layout_height="match_parent" >
 	         
 		    <TextView 
-		        android:id="@+id/mainHelloText"
-		        android:text="Добро пожаловать в приложение 'Сезам'"
+		        android:id="@+id/startHelloText"
+		        android:text="@string/start_page_title"
 		        android:layout_width="match_parent"
 		        android:layout_height="wrap_content"
 		        android:gravity="center"
-		        android:textSize="25sp"
+		        android:textSize="@dimen/start_title_size"
 		        />
 		    <TextView 
-		        android:id="@+id/helpText"
-		        android:text="Чтобы начать диалог с другом, нажмите на верхний левый угол."
+		        android:id="@+id/startHelpText"
+		        android:text="@string/start_page_text"
 		        android:layout_width="match_parent"
-		        android:layout_height="70dp"
-		        android:layout_below="@+id/mainHelloText"
-		        android:gravity="center"
-		        android:textSize="20sp"
+		        android:layout_height="@dimen/start_text_height"
+		        android:layout_below="@+id/startHelloText"
+		        android:layout_marginLeft="70dp"
+		        android:textSize="@dimen/start_text_size"
+		        />
+		    <ImageView 
+		        android:id="@+id/startImage"
+		        android:layout_width="match_parent"
+		        android:layout_height="match_parent"
+		        android:layout_below="@+id/startHelpText"
+		        android:src="@drawable/ic_start"
 		        />
 	    </RelativeLayout>
 
@@ -125,7 +132,7 @@
 	            android:layout_width="match_parent"
 	            android:layout_height="@dimen/message_history_height"
 	            android:layout_alignParentLeft="true"
-	            android:scrollY="@dimen/scroll_view_height"
+	            android:scrollY="@dimen/message_history_height"
 	            android:stackFromBottom="true"
 	            android:transcriptMode="alwaysScroll" >
 
