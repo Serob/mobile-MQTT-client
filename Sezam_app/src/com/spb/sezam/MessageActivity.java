@@ -21,7 +21,7 @@ import com.nostra13.universalimageloader.core.listener.SimpleImageLoadingListene
 import com.spb.sezam.NavigationDrawerFragment.NavigationDrawerCallbacks;
 import com.spb.sezam.adapters.GridViewAdapter;
 import com.spb.sezam.adapters.GridViewHolder;
-import com.spb.sezam.adapters.SubGroupAdapter;
+import com.spb.sezam.adapters.GroupAdapter;
 import com.spb.sezam.management.ElementType;
 import com.spb.sezam.management.GroupPictogram;
 import com.spb.sezam.management.NameManager;
@@ -91,7 +91,8 @@ public class MessageActivity extends ActionBarActivity implements NavigationDraw
 	private String activeUserName = null;
 	private int activeUserId;
 	
-	private SubGroupAdapter subGroupAdapter = null;
+	private GroupAdapter firstLevelGroupAdapter = null;
+	private GroupAdapter subGroupAdapter = null;
 	private GridViewAdapter gridViewAdapter = null;
 	
 	private GridView subGroupsView = null;
@@ -200,6 +201,7 @@ public class MessageActivity extends ActionBarActivity implements NavigationDraw
 		setContentView(R.layout.activity_message);
 		
 		subGroupsView = (GridView)findViewById(R.id.subGroups_view);
+		//subGroupsView.setChoiceMode(GridView.CHOICE_MODE_SINGLE);
 		pictogramsGridView = (GridView)findViewById(R.id.gridView1);
 		
 		historyImageSize = (int)(getResources().getDimension(R.dimen.new_message_height)/1.2);
@@ -953,16 +955,18 @@ public List<String[]> filterMessages(JSONArray messages) throws JSONException{
 		protected void onPostExecute(Void result) {
 			PictogramManager pManager = PictogramManager.getInstance();
 			NameManager nManager = NameManager.getInstance();
-			LinearLayout firstLevelGorups = (LinearLayout)findViewById(R.id.linearLayout_groups);
+			//LinearLayout firstLevelGorups = (LinearLayout)findViewById(R.id.linearLayout_groups);
+			GridView firstLevelGorups = (GridView)findViewById(R.id.firstLevelGroups_view);
+			updateFirstLevelGroupAdapter(firstLevelGorups, pManager.getFirstLevelGroups());
 			
 			//create view for first level groups
-			for(GroupPictogram pic : pManager.getFirstLevelGroups()){
+			/*for(GroupPictogram pic : pManager.getFirstLevelGroups()){
 				Button groupBtn = new Button(MessageActivity.this);
 				String ruName = nManager.getGroupRuName(pic.getPath());
 				groupBtn.setText(ruName);
 				int fontSize = (int)getResources().getDimension(R.dimen.button_font_size);
 				groupBtn.setTextSize(TypedValue.COMPLEX_UNIT_PX, fontSize);
-				groupBtn.setBackgroundResource(R.drawable.group_border);
+				groupBtn.setBackgroundResource(R.drawable.group_button_effect);
 				groupBtn.setTag(pic);
 				LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
 	                    LayoutParams.MATCH_PARENT,
@@ -978,12 +982,31 @@ public List<String[]> filterMessages(JSONArray messages) throws JSONException{
 				});
 				UIUtil.addGroupIconToButton(groupBtn, pic, getResources());
 				firstLevelGorups.addView(groupBtn);
-			}
+			}*/
+			
+		}
+	}
+	//------------------End of Async tasks-------------//	
+
+	private void updateFirstLevelGroupAdapter(final GridView groupView, List<? extends Pictogram> pictograms){
+		if(firstLevelGroupAdapter == null){
+			firstLevelGroupAdapter = new GroupAdapter(MessageActivity.this, pictograms);
+			groupView.setAdapter(firstLevelGroupAdapter);
+			groupView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+				@Override
+				public void onItemClick(AdapterView<?> parent, View view,int position, long id) {
+					GroupPictogram gp = (GroupPictogram)groupView.getItemAtPosition(position);
+					updateAdapters(gp.getInnerPictograms());
+				}
+			});
+			
+		} else {
+			firstLevelGroupAdapter.updateView(pictograms);
 			
 		}
 	}
 	
-
+	
 	private void updateAdapters(List<Pictogram> pictograms){
 		if(pictograms.size() == 0){
 			updateSubGroupAdapter(pictograms);
@@ -991,10 +1014,13 @@ public List<String[]> filterMessages(JSONArray messages) throws JSONException{
 		} else {
 			//assume all other should have the same type
 			if(pictograms.get(0).getType() == ElementType.FILE){
+				subGroupsView.setVisibility(View.GONE);
 				updateSubGroupAdapter(new ArrayList<Pictogram>());
 				updatedateGridViewAdapter(pictograms);
 			} else if(pictograms.get(0).getType() == ElementType.GROUP){
+				subGroupsView.setVisibility(View.VISIBLE);
 				updateSubGroupAdapter(pictograms);
+				subGroupsView.setItemChecked(0, true);
 				updatedateGridViewAdapter(((GroupPictogram)pictograms.get(0)).getInnerPictograms());
 			}
 		}
@@ -1003,7 +1029,7 @@ public List<String[]> filterMessages(JSONArray messages) throws JSONException{
 	
 	private void updateSubGroupAdapter(List<Pictogram> pictograms){
 		if(subGroupAdapter == null){
-			subGroupAdapter = new SubGroupAdapter(MessageActivity.this, pictograms);
+			subGroupAdapter = new GroupAdapter(MessageActivity.this, pictograms);
 			subGroupsView.setAdapter(subGroupAdapter);
 			subGroupsView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
 				@Override
@@ -1077,8 +1103,6 @@ public List<String[]> filterMessages(JSONArray messages) throws JSONException{
 			//pictogramsGridView.smoothScrollToPositionFromTop(0, 0, 200);
 			
 		}
-	
-	//------------------End of Async tasks-------------//
 	
 	
 	private void initImageLoader(){

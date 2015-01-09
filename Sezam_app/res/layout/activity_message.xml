@@ -6,6 +6,8 @@
     android:layout_height="match_parent"
     tools:context=".MessageActivity" >
 
+    <!-- align right, heto ToLeftOf relative-um 
+    	Obshin Linear, vor 'gone' aneluc exception chqci -->
 	    <!--
              As the main content view, the view below consumes the entire
 	         space available using match_parent in both dimensions.
@@ -51,16 +53,16 @@
 		        
 	    </RelativeLayout>
 
-	    <RelativeLayout
+	    <LinearLayout
 	        android:id="@+id/container"
 	        android:layout_width="match_parent"
-	        android:layout_height="match_parent" >
+	        android:layout_height="match_parent" 
+	        android:orientation="vertical">
 		    
 	        <ScrollView
 	            android:id="@+id/scrollView1"
 	            android:layout_width="match_parent"
 	            android:layout_height="@dimen/message_history_height"
-	            android:layout_alignParentLeft="true"
 	            android:scrollY="@dimen/message_history_height"
 	            android:stackFromBottom="true"
 	            android:transcriptMode="alwaysScroll" >
@@ -77,8 +79,6 @@
 	            android:id="@+id/relativeLayout1"
 	            android:layout_width="match_parent"
 	            android:layout_height="@dimen/new_message_height"
-	            android:layout_below="@+id/scrollView1"
-	            android:layout_alignParentLeft="true"
 	            android:background="#22DD33" >
 
 	            <LinearLayout
@@ -112,39 +112,34 @@
 	                android:text="Back" />
 	        </RelativeLayout>
 	        
-	         <LinearLayout
-	            android:id="@+id/linearLayout_groups"
+	         <GridView
+	            android:id="@+id/firstLevelGroups_view"
 	            android:layout_width="wrap_content"
 	            android:layout_height="@dimen/pictogram_group_height"
-	            android:layout_below="@+id/relativeLayout1"
-	            android:layout_alignParentLeft="true"
-	            android:layout_alignParentRight="true"
 	            android:background="#CCCCCC"
-	            android:orientation="horizontal" >
-	             
-	         </LinearLayout>
+	            android:orientation="horizontal" 
+	            android:choiceMode="singleChoice"
+	            android:numColumns="10"/>
 	         
 	         <GridView
 	            android:id="@+id/subGroups_view"
 	            android:layout_width="wrap_content"
 	            android:layout_height="@dimen/pictogram_group_height"
-	            android:layout_below="@+id/linearLayout_groups"
 	            android:background="#CCCCCC"
 	            android:orientation="horizontal"
+	            android:choiceMode="singleChoice"
 	            android:numColumns="10" />
 	        
 	        <GridView 
 	            android:id="@+id/gridView1"
 	            android:layout_width="wrap_content"
-	            android:layout_height="@dimen/keyboard_height"
-	            android:layout_below="@+id/subGroups_view"
+	            android:layout_height="match_parent"
 	            android:background="#CCCCCC"
-	            android:layout_alignParentBottom="true"
 	            android:orientation="horizontal"
 	            android:numColumns="@integer/keyboard_column_count" />
 
 	        
-	    </RelativeLayout>
+	    </LinearLayout>
 
 	    <!--
              android:layout_gravity="start" tells DrawerLayout to treat

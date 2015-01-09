@@ -9,7 +9,7 @@
 	    android:id="@+id/subGroupItem"
 	    android:layout_width="match_parent"
 	    android:layout_height="@dimen/pictogram_group_height"
-	    android:background="@drawable/group_border"
+	    android:background="@drawable/group_button_effect"
 	    android:textSize="@dimen/button_font_size" 
 	    
 	    android:clickable="false"

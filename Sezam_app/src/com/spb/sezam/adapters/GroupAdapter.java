@@ -16,17 +16,17 @@ import com.spb.sezam.management.NameManager;
 import com.spb.sezam.management.Pictogram;
 import com.spb.sezam.utils.UIUtil;
 
-public class SubGroupAdapter extends BaseAdapter{
+public class GroupAdapter extends BaseAdapter{
 
 	private final Context context;
-	private List<Pictogram> subGroups = new ArrayList<>();
+	private List<? extends Pictogram> subGroups = new ArrayList<>();
 	
 	static class ViewHolder {
 		public Button subGroupItem;
 	}
 	
 	//but list content should have GroupPictogram type
-	public SubGroupAdapter(Context context, List<Pictogram> subGroups){
+	public GroupAdapter(Context context, List<? extends Pictogram> subGroups){
 		this.context = context;
 		this.subGroups = subGroups;
 	}
@@ -55,7 +55,7 @@ public class SubGroupAdapter extends BaseAdapter{
 		return elementView;
 	}
 	
-	public void updateView(List<Pictogram> subGroups) {
+	public void updateView(List<? extends Pictogram> subGroups) {
         this.subGroups = subGroups;
         notifyDataSetChanged();
     }
