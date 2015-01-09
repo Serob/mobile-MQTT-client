@@ -21,7 +21,7 @@ public class PictogramManager {
 	public static final String BASE_FOLDER = "pictograms";
 	
 	private List<GroupPictogram> allGroups = new ArrayList<>();
-	private List<Pictogram> pictograms = new ArrayList<>();
+	private List<GroupPictogram> firstLevelGroups = new ArrayList<>();
 	
 	private final String imagePatern = ".*?[\\.jpg|\\.png]";
 	
@@ -59,11 +59,11 @@ public class PictogramManager {
 			
 			if(!name.matches(imagePatern)){
 				GroupPictogram pGroup = new GroupPictogram(name);
-				pictograms.add(pGroup);
+				firstLevelGroups.add(pGroup);
 				allGroups.add(pGroup);
 				collectPictograms(pGroup, am);
 			}
-			Collections.sort(pictograms);
+			Collections.sort(firstLevelGroups);
 
 			//for test
 			/*BitmapDrawable bd = new BitmapDrawable(ctx.getResources(), am.open(FOLDER_NAME + File.separator + name));
@@ -105,8 +105,8 @@ public class PictogramManager {
 		return allGroups;
 	}
 
-	public List<Pictogram> getPictograms() {
-		return pictograms;
+	public List<GroupPictogram> getFirstLevelGroups() {
+		return firstLevelGroups;
 	}
 	
 	

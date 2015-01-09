@@ -1,16 +1,11 @@
 package com.spb.sezam;
 
 import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -21,6 +16,7 @@ import com.nostra13.universalimageloader.core.DisplayImageOptions;
 import com.nostra13.universalimageloader.core.ImageLoader;
 import com.nostra13.universalimageloader.core.ImageLoaderConfiguration;
 import com.nostra13.universalimageloader.core.assist.ImageScaleType;
+import com.nostra13.universalimageloader.core.assist.ImageSize;
 import com.nostra13.universalimageloader.core.listener.SimpleImageLoadingListener;
 import com.spb.sezam.NavigationDrawerFragment.NavigationDrawerCallbacks;
 import com.spb.sezam.adapters.GridViewAdapter;
@@ -32,8 +28,7 @@ import com.spb.sezam.management.NameManager;
 import com.spb.sezam.management.Pictogram;
 import com.spb.sezam.management.PictogramManager;
 import com.spb.sezam.utils.ActivityUtil;
-import com.spb.sezam.utils.BitmapDecoder;
-import com.spb.sezam.widged.GridViewItem;
+import com.spb.sezam.utils.UIUtil;
 import com.vk.sdk.VKScope;
 import com.vk.sdk.VKSdk;
 import com.vk.sdk.VKUIHelper;
@@ -43,12 +38,12 @@ import com.vk.sdk.api.VKRequest;
 import com.vk.sdk.api.VKRequest.VKRequestListener;
 import com.vk.sdk.api.VKResponse;
 
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.res.AssetManager;
 import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.Bitmap.CompressFormat;
@@ -101,6 +96,8 @@ public class MessageActivity extends ActionBarActivity implements NavigationDraw
 	
 	private GridView subGroupsView = null;
 	private GridView pictogramsGridView = null;
+	//in pixels
+	private int historyImageSize = 0;
 	
 	private Runnable recieveMessagesRunnable = null;
 	/** For all Users */
@@ -182,7 +179,8 @@ public class MessageActivity extends ActionBarActivity implements NavigationDraw
 
 		@Override
 		public void onError(VKError error) {
-			//ActivityUtil.showError(MessageActivity.this, error);
+			Log.e("Error on Message recieve", "Error on Message recieve");
+			ActivityUtil.showError(MessageActivity.this, error);
 		}
 	};
 	
@@ -204,12 +202,14 @@ public class MessageActivity extends ActionBarActivity implements NavigationDraw
 		subGroupsView = (GridView)findViewById(R.id.subGroups_view);
 		pictogramsGridView = (GridView)findViewById(R.id.gridView1);
 		
+		historyImageSize = (int)(getResources().getDimension(R.dimen.new_message_height)/1.2);
+		
 		new ManagersInitializer().execute();
 		initImageLoader();
 		View view = findViewById(R.id.container);
 		view.setVisibility(View.INVISIBLE); //or gone
 		//createButtonsFromDrawables();
-		createButtonsFromAssets();
+		//createButtonsFromAssets();
 		initOnPictogramClickListener();
 		//PictogramManager.getInstance().init(MessageActivity.this);
 		
@@ -233,7 +233,7 @@ public class MessageActivity extends ActionBarActivity implements NavigationDraw
                 R.id.navigation_drawer,
                 (DrawerLayout) findViewById(R.id.drawer_layout));
 		
-        Intent intent = getIntent();
+//        Intent intent = getIntent();
         //String activefriend = intent.getStringExtra(FriendsActivity.EXTRA_MESSAGE);
         
 //		try {
@@ -322,7 +322,7 @@ public class MessageActivity extends ActionBarActivity implements NavigationDraw
 				// predefined in .xml as Войти
 				if (VKSdk.wakeUpSession()) {
 					Log.e("wakeUp", "wakeUp");
-					startActivity(FriendsActivity.class);
+					//startActivity(FriendsActivity.class);
 					// skzbi hamar shat el a
 					b.setText("Выход!");
 					b.setOnClickListener(new View.OnClickListener() {
@@ -430,54 +430,27 @@ public class MessageActivity extends ActionBarActivity implements NavigationDraw
 		lLayout.addView(textView);
 	}
 	
+	@Override
+    public void onRestoreInstanceState(Bundle savedInstanceState) {
+    	Log.w("mtav", "mtav ste");
+    }
+	
 	private void showTextWithImages(String text, LinearLayout lLayout){
 		if(text == null || "".equals(text)){
 			return;
 		}
 		
 		ImageView image = new ImageView(MessageActivity.this);
+		setImageViewSize(image, historyImageSize);
 		
-		int bgResourceId;
-		//try {
-			/*bgResourceId = R.drawable.class.getField(text).getInt(null);
-			image.setBackgroundResource(bgResourceId);*/
-			/////////////
-			int size = (int)getResources().getDimension(R.dimen.new_message_height);
-			setImageViewSize(image, (int)(size/1.2));
-			
-			String path = NameManager.getInstance().getFileEngName(text);
-			if(path != null){
-				String pathWithAssets = "assets://" + PictogramManager.BASE_FOLDER + File.separator + path ;
-				ImageLoader.getInstance().displayImage(pathWithAssets, image);
-				lLayout.addView(image);
-			} else {
-				showTextAsString(text, lLayout);
-			}
-			
-			
-		/*} catch (IllegalAccessException | IllegalArgumentException e) {
-			e.printStackTrace();
-		} catch (NoSuchFieldException e) {
+		String path = NameManager.getInstance().getFileEngName(text);
+		if(path != null){
+			String pathWithAssets = "assets://" + PictogramManager.BASE_FOLDER + File.separator + path ;
+			ImageLoader.getInstance().displayImage(pathWithAssets, image);
+			lLayout.addView(image);
+		} else {
 			showTextAsString(text, lLayout);
-		}*/
-		
-			
-		/*if("чувствовать".equals(text)){
-			image.setBackgroundResource(R.drawable.image_1_thumb);
-		} else if("я".equals(text)){
-			image.setBackgroundResource(R.drawable.image_2_thumb);
-		} else if("хорошо".equals(text)){
-			image.setBackgroundResource(R.drawable.image_3_thumb);
-		} else if("чувствовать себя".equals(text)){
-			image.setBackgroundResource(R.drawable.image_4_thumb);
-		//none of words
-		} else{
-			showTextAsString(text, lLayout);
-			return;
 		}
-		
-		//if icon name is found
-		lLayout.addView(image);*/
 		
 	}
 	
@@ -908,11 +881,6 @@ public List<String[]> filterMessages(JSONArray messages) throws JSONException{
 			//handler.removeCallbacks(checkUnreadMessagesRunnable);
 		}
 	}
-
-	@Override
-	public OnClickListener getOnPictogramClickListener() {
-		return onPictogramClickListener;
-	}
 	
 	/**
 	 * For square images
@@ -924,6 +892,12 @@ public List<String[]> filterMessages(JSONArray messages) throws JSONException{
 		image.setLayoutParams(par);
 	}
 	
+	
+	@Override
+	public OnClickListener getOnPictogramClickListener() {
+		return onPictogramClickListener;
+	}
+	
 	private void initOnPictogramClickListener() {
 		onPictogramClickListener = new View.OnClickListener() {
 
@@ -931,7 +905,6 @@ public List<String[]> filterMessages(JSONArray messages) throws JSONException{
 			public void onClick(View view) {
 				final LinearLayout piktogramsLayout = (LinearLayout) findViewById(R.id.linearLayout1);
 				final ImageView image = new ImageView(MessageActivity.this);
-				getResources().getDimension(R.dimen.new_message_height);
 				
 				//translated to pixels
 				int size = (int)getResources().getDimension(R.dimen.new_message_height);
@@ -940,9 +913,6 @@ public List<String[]> filterMessages(JSONArray messages) throws JSONException{
 				Pictogram pic = ((GridViewHolder)view.getTag()).getPictogram(); //was set in adapter
 				String picRuName  = NameManager.getInstance().getFileRuName(pic.getPath());
 				addImageNameToSendMessages(picRuName);
-
-				//maybe change to tag, because if image in message part scales
-				//it affects to button
 				
 				ImageLoader imageLoader = ImageLoader.getInstance();
 				imageLoader.displayImage(pic.getPathWithAssests(), image, new SimpleImageLoadingListener() {
@@ -986,25 +956,28 @@ public List<String[]> filterMessages(JSONArray messages) throws JSONException{
 			LinearLayout firstLevelGorups = (LinearLayout)findViewById(R.id.linearLayout_groups);
 			
 			//create view for first level groups
-			for(Pictogram pic : pManager.getPictograms()){
-				Button group = new Button(MessageActivity.this);
+			for(GroupPictogram pic : pManager.getFirstLevelGroups()){
+				Button groupBtn = new Button(MessageActivity.this);
 				String ruName = nManager.getGroupRuName(pic.getPath());
-				group.setText(ruName);
+				groupBtn.setText(ruName);
 				int fontSize = (int)getResources().getDimension(R.dimen.button_font_size);
-				group.setTextSize(TypedValue.COMPLEX_UNIT_PX, fontSize);
-				group.setTag(pic);
+				groupBtn.setTextSize(TypedValue.COMPLEX_UNIT_PX, fontSize);
+				groupBtn.setBackgroundResource(R.drawable.group_border);
+				groupBtn.setTag(pic);
 				LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
 	                    LayoutParams.MATCH_PARENT,
 	                    LayoutParams.MATCH_PARENT, 1.0f);
-				group.setLayoutParams(params);
-				group.setOnClickListener(new OnClickListener() {
+				//params.setMargins(2, 0, 2, 0);
+				groupBtn.setLayoutParams(params);
+				groupBtn.setOnClickListener(new OnClickListener() {
 					@Override
 					public void onClick(View v) {
 						GroupPictogram pic = ((GroupPictogram)v.getTag());
 						updateAdapters(pic.getInnerPictograms());
 					}
 				});
-				firstLevelGorups.addView(group);
+				UIUtil.addGroupIconToButton(groupBtn, pic, getResources());
+				firstLevelGorups.addView(groupBtn);
 			}
 			
 		}
@@ -1094,8 +1067,15 @@ public List<String[]> filterMessages(JSONArray messages) throws JSONException{
 			} else {
 				gridViewAdapter.updateView(pictograms);
 			}
-			pictogramsGridView.smoothScrollToPosition(0);
-			//pictogramsGridView.smoothScrollToPositionFromTop(0, 0, 1);
+			pictogramsGridView.post(new Runnable() {
+				@Override
+				public void run() {
+					pictogramsGridView.setSelection(0);//moothScrollToPosition(0);
+				}
+			});
+			//pictogramsGridView.smoothScrollToPosition(0);
+			//pictogramsGridView.smoothScrollToPositionFromTop(0, 0, 200);
+			
 		}
 	
 	//------------------End of Async tasks-------------//
@@ -1108,6 +1088,7 @@ public List<String[]> filterMessages(JSONArray messages) throws JSONException{
 		//Create image options.
 		DisplayImageOptions options = new DisplayImageOptions.Builder()
 	    .cacheInMemory(true)
+	    .imageScaleType(ImageScaleType.EXACTLY) //Only need for group buttons, need to be changed
 	    .bitmapConfig(Bitmap.Config.ALPHA_8) //because our images are black/white
 	    .build();
 		

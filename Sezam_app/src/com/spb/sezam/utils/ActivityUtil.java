@@ -13,16 +13,17 @@ public class ActivityUtil {
 	
 	public static void showError(Context context, VKError error) {
 		String message = error.errorMessage;
-		if(message == null && error.apiError != null){
+		if (message == null && error.apiError != null) {
 			message = error.apiError.errorMessage;
 		}
 
-        if (error.httpError != null) {
-            Log.w("Test", "Error in request: " + error.httpError.getMessage(), error.httpError);
-        } else {
-        	 showError(context, message);
-        }
-    }
+		if (error.httpError != null) {
+			Log.e("Test", "Error in request: " + error.httpError.getMessage(), error.httpError);
+		} else {
+			Log.e("VK error", "Error in request: " + message);
+			// showError(context, message);
+		}
+	}
 	
 	public static void showError(Context context, String message){
 		new AlertDialog.Builder(context)

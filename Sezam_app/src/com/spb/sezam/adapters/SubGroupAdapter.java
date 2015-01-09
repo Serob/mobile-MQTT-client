@@ -14,6 +14,7 @@ import com.spb.sezam.R;
 import com.spb.sezam.management.GroupPictogram;
 import com.spb.sezam.management.NameManager;
 import com.spb.sezam.management.Pictogram;
+import com.spb.sezam.utils.UIUtil;
 
 public class SubGroupAdapter extends BaseAdapter{
 
@@ -49,6 +50,7 @@ public class SubGroupAdapter extends BaseAdapter{
 		GroupPictogram group = getItem(position);
 		String ruName = NameManager.getInstance().getGroupRuName(group.getPath());
 		holder.subGroupItem.setText(ruName);
+		UIUtil.addGroupIconToButton(holder.subGroupItem, group, context.getResources());
 		
 		return elementView;
 	}

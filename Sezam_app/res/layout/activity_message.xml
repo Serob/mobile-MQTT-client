@@ -16,14 +16,23 @@
 	         android:layout_width="match_parent"
 	         android:layout_height="match_parent" >
 	         
+	       <!-- <Button
+		        android:layout_width="70dp"
+		        android:layout_height="70dp"
+		        android:background="@drawable/group_border"
+		        android:drawableTop="@drawable/count_1"
+		        android:textColor="#FF0000"
+		        android:id="@+id/ButtonTest"
+		        android:text="this is text"/> -->
+	         
 		    <TextView 
 		        android:id="@+id/startHelloText"
 		        android:text="@string/start_page_title"
 		        android:layout_width="match_parent"
 		        android:layout_height="wrap_content"
 		        android:gravity="center"
-		        android:textSize="@dimen/start_title_size"
-		        />
+		        android:textSize="@dimen/start_title_size"/>
+		    
 		    <TextView 
 		        android:id="@+id/startHelpText"
 		        android:text="@string/start_page_text"
@@ -31,68 +40,44 @@
 		        android:layout_height="@dimen/start_text_height"
 		        android:layout_below="@+id/startHelloText"
 		        android:layout_marginLeft="70dp"
-		        android:textSize="@dimen/start_text_size"
-		        />
+		        android:textSize="@dimen/start_text_size"/>
+		    
 		    <ImageView 
 		        android:id="@+id/startImage"
 		        android:layout_width="match_parent"
 		        android:layout_height="match_parent"
 		        android:layout_below="@+id/startHelpText"
-		        android:src="@drawable/ic_start"
-		        />
+		        android:src="@drawable/ic_start" /> 
+		        
 	    </RelativeLayout>
 
 	    <RelativeLayout
 	        android:id="@+id/container"
 	        android:layout_width="match_parent"
 	        android:layout_height="match_parent" >
+		    
+	        <ScrollView
+	            android:id="@+id/scrollView1"
+	            android:layout_width="match_parent"
+	            android:layout_height="@dimen/message_history_height"
+	            android:layout_alignParentLeft="true"
+	            android:scrollY="@dimen/message_history_height"
+	            android:stackFromBottom="true"
+	            android:transcriptMode="alwaysScroll" >
 
-	        <LinearLayout
-	            android:id="@+id/linearLayout2"
-	            android:layout_width="wrap_content"
-	            android:layout_height="@dimen/keyboard_height"
-	            android:layout_alignParentBottom="true"
-	            android:layout_alignParentLeft="true"
-	            android:layout_alignParentRight="true"
-	            android:background="#CCCCCC"
-	            android:orientation="horizontal" >
-	        </LinearLayout> 
-	        
-	         <LinearLayout
-	            android:id="@+id/linearLayout_groups"
-	            android:layout_width="wrap_content"
-	            android:layout_height="@dimen/pictogram_group_height"
-	            android:layout_above="@+id/subGroups_view"
-	            android:layout_alignParentLeft="true"
-	            android:layout_alignParentRight="true"
-	            android:background="#CCCCCC"
-	            android:orientation="horizontal" >
-	             
-	         </LinearLayout>
-	         
-	         <GridView
-	            android:id="@+id/subGroups_view"
-	            android:layout_width="wrap_content"
-	            android:layout_height="@dimen/pictogram_group_height"
-	            android:layout_above="@+id/gridView1"
-	            android:background="#CCCCCC"
-	            android:orientation="horizontal"
-	            android:numColumns="10" />
-	        
-	        <GridView 
-	            android:id="@+id/gridView1"
-	            android:layout_width="wrap_content"
-	            android:layout_height="@dimen/keyboard_height"
-	            android:layout_alignParentBottom="true"
-	            android:background="#CCCCCC"
-	            android:orientation="horizontal"
-	            android:numColumns="@integer/keyboard_column_count" />
+	            <LinearLayout
+	                android:id="@+id/messageHistory"
+	                android:layout_width="match_parent"
+	                android:layout_height="@dimen/message_history_height"
+	                android:orientation="vertical" >
+	            </LinearLayout>
+	        </ScrollView>
 
 	        <RelativeLayout
 	            android:id="@+id/relativeLayout1"
 	            android:layout_width="match_parent"
 	            android:layout_height="@dimen/new_message_height"
-	            android:layout_above="@+id/linearLayout_groups"
+	            android:layout_below="@+id/scrollView1"
 	            android:layout_alignParentLeft="true"
 	            android:background="#22DD33" >
 
@@ -126,23 +111,39 @@
 	                android:src="@drawable/back"
 	                android:text="Back" />
 	        </RelativeLayout>
-
-	        <ScrollView
-	            android:id="@+id/scrollView1"
-	            android:layout_width="match_parent"
-	            android:layout_height="@dimen/message_history_height"
+	        
+	         <LinearLayout
+	            android:id="@+id/linearLayout_groups"
+	            android:layout_width="wrap_content"
+	            android:layout_height="@dimen/pictogram_group_height"
+	            android:layout_below="@+id/relativeLayout1"
 	            android:layout_alignParentLeft="true"
-	            android:scrollY="@dimen/message_history_height"
-	            android:stackFromBottom="true"
-	            android:transcriptMode="alwaysScroll" >
+	            android:layout_alignParentRight="true"
+	            android:background="#CCCCCC"
+	            android:orientation="horizontal" >
+	             
+	         </LinearLayout>
+	         
+	         <GridView
+	            android:id="@+id/subGroups_view"
+	            android:layout_width="wrap_content"
+	            android:layout_height="@dimen/pictogram_group_height"
+	            android:layout_below="@+id/linearLayout_groups"
+	            android:background="#CCCCCC"
+	            android:orientation="horizontal"
+	            android:numColumns="10" />
+	        
+	        <GridView 
+	            android:id="@+id/gridView1"
+	            android:layout_width="wrap_content"
+	            android:layout_height="@dimen/keyboard_height"
+	            android:layout_below="@+id/subGroups_view"
+	            android:background="#CCCCCC"
+	            android:layout_alignParentBottom="true"
+	            android:orientation="horizontal"
+	            android:numColumns="@integer/keyboard_column_count" />
 
-	            <LinearLayout
-	                android:id="@+id/messageHistory"
-	                android:layout_width="match_parent"
-	                android:layout_height="@dimen/message_history_height"
-	                android:orientation="vertical" >
-	            </LinearLayout>
-	        </ScrollView>
+	        
 	    </RelativeLayout>
 
 	    <!--

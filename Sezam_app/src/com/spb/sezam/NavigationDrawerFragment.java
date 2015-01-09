@@ -31,6 +31,7 @@ import android.graphics.Color;
 import android.os.Bundle;
 import android.os.Handler;
 import android.preference.PreferenceManager;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -75,7 +76,7 @@ public class NavigationDrawerFragment extends Fragment {
     private ListView mDrawerListView;
     private View mFragmentContainerView;
 
-    private int mCurrentSelectedPosition = 0;
+    private int mCurrentSelectedPosition = -1;
     private boolean mFromSavedInstanceState;
     private boolean mUserLearnedDrawer;
     
@@ -112,7 +113,8 @@ public class NavigationDrawerFragment extends Fragment {
 
 		@Override
 		public void onError(VKError error) {
-			//ActivityUtil.showError(getActivity(), error);
+			Log.e("Error on Friends load", "Error on Friends load");
+			ActivityUtil.showError(getActivity(), error);
 		}
 	};
 	
@@ -187,7 +189,9 @@ public class NavigationDrawerFragment extends Fragment {
         }
 
         // Select either the default item (0) or the last selected item.
-        //selectItem(mCurrentSelectedPosition);
+        if(mCurrentSelectedPosition >= 0){
+        	selectItem(mCurrentSelectedPosition);
+        }
         
         //Verev@ ?????????
         ////////////////----------------
@@ -466,12 +470,12 @@ public class NavigationDrawerFragment extends Fragment {
     public boolean onOptionsItemSelected(MenuItem item) {
         if (mDrawerToggle.onOptionsItemSelected(item)) {
             return true;
-        } /*else if(item.getItemId() == R.id.action_message ){
+        } else if(item.getItemId() == R.id.action_message ){
         	if(unReadDialogsCount > 0){
         		openDrawer();
         	}
 			return true;
-        }*/
+        }
         return super.onOptionsItemSelected(item);
     }
 
