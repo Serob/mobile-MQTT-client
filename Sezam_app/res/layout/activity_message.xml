@@ -80,14 +80,21 @@
 	            android:layout_width="match_parent"
 	            android:layout_height="@dimen/new_message_height"
 	            android:background="#22DD33" >
+	            
+	            <GridView 
+	                android:id="@+id/newMessage"
+	                android:layout_height="@dimen/new_message_height"
+	                android:layout_width="1200dp"
+	                android:orientation="horizontal" 
+	                android:numColumns="@integer/new_message_icon_count"/>
 
-	            <LinearLayout
+	            <!-- <LinearLayout
 	                android:id="@+id/linearLayout1"
 	                android:layout_width="match_parent"
 	                android:layout_height="@dimen/new_message_height"
 	                android:layout_alignParentLeft="true"
 	                android:orientation="horizontal" >
-	            </LinearLayout>
+	            </LinearLayout> -->
 
 	            <ImageButton
 	                android:id="@+id/send"

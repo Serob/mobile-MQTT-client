@@ -6,9 +6,9 @@ import android.util.Log;
 
 import com.vk.sdk.api.VKError;
 
-public class ActivityUtil {
+public class ErrorUtil {
 
-	private ActivityUtil(){
+	private ErrorUtil(){
 	}
 	
 	public static void showError(Context context, VKError error) {

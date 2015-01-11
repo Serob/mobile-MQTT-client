@@ -10,7 +10,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import com.spb.sezam.adapters.UsersAdapter;
-import com.spb.sezam.utils.ActivityUtil;
+import com.spb.sezam.utils.ErrorUtil;
 import com.vk.sdk.api.VKApi;
 import com.vk.sdk.api.VKApiConst;
 import com.vk.sdk.api.VKError;
@@ -107,14 +107,14 @@ public class NavigationDrawerFragment extends Fragment {
 				//usersAdapter.notifyDataSetChanged();
 			} catch (JSONException e) {
 				e.printStackTrace();
-				ActivityUtil.showError(getActivity(), "Ошибка при обработке списка друзей");
+				ErrorUtil.showError(getActivity(), "Ошибка при обработке списка друзей");
 			}
 		}
 
 		@Override
 		public void onError(VKError error) {
 			Log.e("Error on Friends load", "Error on Friends load");
-			ActivityUtil.showError(getActivity(), error);
+			ErrorUtil.showError(getActivity(), error);
 		}
 	};
 	

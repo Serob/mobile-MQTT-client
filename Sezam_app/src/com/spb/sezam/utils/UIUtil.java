@@ -19,6 +19,12 @@ public class UIUtil {
 	private UIUtil(){
 	}
 	
+	/**
+	 * Adds group's first pictogram to the top of the button
+	 * @param btn {@link Button} to which pictogram icon will be added
+	 * @param group {@link GroupPictogram} from which the first icon should be found
+	 * @param res {@link Resources}
+	 */
 	public static void addGroupIconToButton(Button btn, GroupPictogram group, Resources res){
 		String fileName = null;
 		List<Pictogram> pictograms = group.getInnerPictograms();

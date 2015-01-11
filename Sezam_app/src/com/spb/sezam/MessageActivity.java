@@ -22,12 +22,13 @@ import com.spb.sezam.NavigationDrawerFragment.NavigationDrawerCallbacks;
 import com.spb.sezam.adapters.GridViewAdapter;
 import com.spb.sezam.adapters.GridViewHolder;
 import com.spb.sezam.adapters.GroupAdapter;
+import com.spb.sezam.adapters.MessageAdapter;
 import com.spb.sezam.management.ElementType;
 import com.spb.sezam.management.GroupPictogram;
 import com.spb.sezam.management.NameManager;
 import com.spb.sezam.management.Pictogram;
 import com.spb.sezam.management.PictogramManager;
-import com.spb.sezam.utils.ActivityUtil;
+import com.spb.sezam.utils.ErrorUtil;
 import com.spb.sezam.utils.UIUtil;
 import com.vk.sdk.VKScope;
 import com.vk.sdk.VKSdk;
@@ -87,6 +88,7 @@ public class MessageActivity extends ActionBarActivity implements NavigationDraw
 	private static final int MESSAGE_RECIEVE_COUNT = 7;
 	
 	private List<String> messageToSend = new ArrayList<String>();
+	private List<Pictogram> pictogramsToSend = new ArrayList<>(); //maybe can messageToSend messageToSend
 	private JSONArray allMessages = new JSONArray();
 	private String activeUserName = null;
 	private int activeUserId;
@@ -94,6 +96,7 @@ public class MessageActivity extends ActionBarActivity implements NavigationDraw
 	private GroupAdapter firstLevelGroupAdapter = null;
 	private GroupAdapter subGroupAdapter = null;
 	private GridViewAdapter gridViewAdapter = null;
+	private MessageAdapter newMessageAdapter = null;
 	
 	private GridView subGroupsView = null;
 	private GridView pictogramsGridView = null;
@@ -114,8 +117,12 @@ public class MessageActivity extends ActionBarActivity implements NavigationDraw
 
 		@Override
 		public void onComplete(VKResponse response) {
-			LinearLayout formLayout = (LinearLayout) findViewById(R.id.linearLayout1);
-			formLayout.removeAllViews();
+			
+			/*LinearLayout formLayout = (LinearLayout) findViewById(R.id.linearLayout1);
+			formLayout.removeAllViews();*/
+			pictogramsToSend.clear();
+			newMessageAdapter.updateView(pictogramsToSend);
+			
 			messageToSend.clear();
 			Toast showSent = Toast.makeText(getApplicationContext(), "Сообщение отправлено", Toast.LENGTH_SHORT);
 			showSent.show();
@@ -124,7 +131,7 @@ public class MessageActivity extends ActionBarActivity implements NavigationDraw
 
 		@Override
 		public void onError(VKError error) {
-			ActivityUtil.showError(MessageActivity.this, error);
+			ErrorUtil.showError(MessageActivity.this, error);
 		}
 		
 	};
@@ -181,7 +188,7 @@ public class MessageActivity extends ActionBarActivity implements NavigationDraw
 		@Override
 		public void onError(VKError error) {
 			Log.e("Error on Message recieve", "Error on Message recieve");
-			ActivityUtil.showError(MessageActivity.this, error);
+			ErrorUtil.showError(MessageActivity.this, error);
 		}
 	};
 	
@@ -463,10 +470,13 @@ public class MessageActivity extends ActionBarActivity implements NavigationDraw
 	}
 	
 	public void backButton(View v){
-        LinearLayout formLayout = (LinearLayout)findViewById(R.id.linearLayout1);
+        //LinearLayout formLayout = (LinearLayout)findViewById(R.id.linearLayout1);
         if(messageToSend.size() != 0){
-        	formLayout.removeViewAt(formLayout.getChildCount() - 1 );
+        	//formLayout.removeViewAt(formLayout.getChildCount() - 1 );
         	messageToSend.remove(messageToSend.size() - 1);
+        	
+        	pictogramsToSend.remove(pictogramsToSend.size() - 1);
+        	newMessageAdapter.updateView(pictogramsToSend);
         }
 	}	
 	
@@ -866,9 +876,18 @@ public List<String[]> filterMessages(JSONArray messages) throws JSONException{
 	private void initForUser(JSONObject user){
 		LinearLayout historyLayout = (LinearLayout)findViewById(R.id.messageHistory);
 		historyLayout.removeAllViews();
-		LinearLayout formLayout = (LinearLayout)findViewById(R.id.linearLayout1);
-		formLayout.removeAllViews();
+		/*LinearLayout formLayout = (LinearLayout)findViewById(R.id.linearLayout1);
+		formLayout.removeAllViews();*/
+		pictogramsToSend.clear();
 		messageToSend.clear();
+		
+		if(newMessageAdapter == null){
+			newMessageAdapter = new MessageAdapter(MessageActivity.this, pictogramsToSend);
+			GridView newMessageLayout = (GridView)findViewById(R.id.newMessage);
+			newMessageLayout.setAdapter(newMessageAdapter);
+		} else {
+			newMessageAdapter.updateView(pictogramsToSend);
+		}
 		
 		//method is called first time
 		if(activeUserName == null){
@@ -905,7 +924,7 @@ public List<String[]> filterMessages(JSONArray messages) throws JSONException{
 
 			@Override
 			public void onClick(View view) {
-				final LinearLayout piktogramsLayout = (LinearLayout) findViewById(R.id.linearLayout1);
+				//final LinearLayout piktogramsLayout = (LinearLayout) findViewById(R.id.linearLayout1);
 				final ImageView image = new ImageView(MessageActivity.this);
 				
 				//translated to pixels
@@ -916,15 +935,30 @@ public List<String[]> filterMessages(JSONArray messages) throws JSONException{
 				String picRuName  = NameManager.getInstance().getFileRuName(pic.getPath());
 				addImageNameToSendMessages(picRuName);
 				
-				ImageLoader imageLoader = ImageLoader.getInstance();
+				pictogramsToSend.add(pic);
+				
+				newMessageAdapter.updateView(pictogramsToSend);
+				final GridView newMessageLayout = (GridView)findViewById(R.id.newMessage);
+				newMessageLayout.post(new Runnable() {
+					@Override
+					public void run() {
+						if(pictogramsToSend.size() > getResources().getInteger(R.integer.new_message_icon_count)){
+							newMessageLayout.setSelection(pictogramsToSend.size());
+						}
+					}
+				});
+				
+				
+				/*ImageLoader imageLoader = ImageLoader.getInstance();
 				imageLoader.displayImage(pic.getPathWithAssests(), image, new SimpleImageLoadingListener() {
 					@Override
 					public void onLoadingComplete(String imageUri, View view, Bitmap loadedImage) {
-						/*BitmapDrawable bd = new BitmapDrawable(getResources(), loadedImage);
-						((ImageView)view).setBackground(bd);*/
+						BitmapDrawable bd = new BitmapDrawable(getResources(), loadedImage);
+						((ImageView)view).setBackground(bd);
 						piktogramsLayout.addView(image);
 					}
-				});
+				});*/
+				
 				//piktogramsLayout.addView(image);
 			}
 		};

@@ -19,7 +19,7 @@ import com.spb.sezam.utils.UIUtil;
 public class GroupAdapter extends BaseAdapter{
 
 	private final Context context;
-	private List<? extends Pictogram> subGroups = new ArrayList<>();
+	private List<? extends Pictogram> groups = new ArrayList<>();
 	
 	static class ViewHolder {
 		public Button subGroupItem;
@@ -28,7 +28,7 @@ public class GroupAdapter extends BaseAdapter{
 	//but list content should have GroupPictogram type
 	public GroupAdapter(Context context, List<? extends Pictogram> subGroups){
 		this.context = context;
-		this.subGroups = subGroups;
+		this.groups = subGroups;
 	}
 	
 	@Override
@@ -39,7 +39,7 @@ public class GroupAdapter extends BaseAdapter{
 		if(elementView == null){
 			LayoutInflater inflater = (LayoutInflater)context
 					.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-			elementView = inflater.inflate(R.layout.subgroup_layout, parent, false);
+			elementView = inflater.inflate(R.layout.group_layout, parent, false);
 			ViewHolder viewHolder = new ViewHolder();
 			viewHolder.subGroupItem  = (Button)elementView.findViewById(R.id.subGroupItem);
 			elementView.setTag(viewHolder);
@@ -56,18 +56,18 @@ public class GroupAdapter extends BaseAdapter{
 	}
 	
 	public void updateView(List<? extends Pictogram> subGroups) {
-        this.subGroups = subGroups;
+        this.groups = subGroups;
         notifyDataSetChanged();
     }
 	
 	@Override
 	public int getCount() {
-		return subGroups.size();
+		return groups.size();
 	}
 
 	@Override
 	public GroupPictogram getItem(int position) {
-		return (GroupPictogram)subGroups.get(position);
+		return (GroupPictogram)groups.get(position);
 	}
 
 	@Override

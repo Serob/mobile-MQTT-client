@@ -6,7 +6,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import com.spb.sezam.utils.ActivityUtil;
+import com.spb.sezam.utils.ErrorUtil;
 import com.vk.sdk.VKUIHelper;
 import com.vk.sdk.api.VKApi;
 import com.vk.sdk.api.VKApiConst;
@@ -42,7 +42,7 @@ public class FriendsActivity extends Activity {
 					showFriends(response.json.getJSONObject("response").getJSONArray("items"));
 				} catch (JSONException e) {
 					e.printStackTrace();
-					ActivityUtil.showError(FriendsActivity.this	, "Ошибка при обработке списка друзей");
+					ErrorUtil.showError(FriendsActivity.this	, "Ошибка при обработке списка друзей");
 				}
 				//VKRequest request = new VKRequest("messages.send", VKParameters.from("user_id", "222290520", "message", "Hi user 222290520 !"));
 				//request.executeWithListener(this);
@@ -50,7 +50,7 @@ public class FriendsActivity extends Activity {
 
 			@Override
 			public void onError(VKError error) {
-				ActivityUtil.showError(FriendsActivity.this	, error);
+				ErrorUtil.showError(FriendsActivity.this	, error);
 			}
 		};
 		
