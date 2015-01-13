@@ -1,6 +1,7 @@
 package com.spb.sezam;
 
 import java.io.File;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -187,7 +188,7 @@ public class MessageActivity extends ActionBarActivity implements NavigationDraw
 
 		@Override
 		public void onError(VKError error) {
-			Log.e("Error on Message recieve", "Error on Message recieve");
+			Log.e("Message recieve", "Error on Message recieve");
 			ErrorUtil.showError(MessageActivity.this, error);
 		}
 	};
@@ -505,6 +506,10 @@ public class MessageActivity extends ActionBarActivity implements NavigationDraw
 		if(messagesCount > 0){
 			VKRequest request = new VKRequest("messages.getHistory", VKParameters.from("user_id", activeUserId, "count", messagesCount));
 			request.executeWithListener(messageRecieveListener);
+			
+			SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:ss.SSS");
+			Date date = new Date();
+			Log.i("Time messages", "Messages recive at " + sdf.format(date));
 		}
 	}
 	
@@ -544,11 +549,11 @@ public class MessageActivity extends ActionBarActivity implements NavigationDraw
 		recieveMessagesRunnable = new Runnable() {
 			public void run() {
 				recieveMessageHistory(MESSAGE_RECIEVE_COUNT);
-				handler.postDelayed(this, 4000);
+				handler.postDelayed(this, 5000);
 			}
 		};
 		
-		handler.postDelayed(recieveMessagesRunnable, 4000);
+		handler.postDelayed(recieveMessagesRunnable, 5000);
 	}
 	
 	
@@ -942,7 +947,8 @@ public List<String[]> filterMessages(JSONArray messages) throws JSONException{
 				newMessageLayout.post(new Runnable() {
 					@Override
 					public void run() {
-						if(pictogramsToSend.size() > getResources().getInteger(R.integer.new_message_icon_count)){
+						//scroll
+						if(pictogramsToSend.size() > getResources().getInteger(R.integer.new_message_icons_count)){
 							newMessageLayout.setSelection(pictogramsToSend.size());
 						}
 					}
@@ -1033,6 +1039,9 @@ public List<String[]> filterMessages(JSONArray messages) throws JSONException{
 					updateAdapters(gp.getInnerPictograms());
 				}
 			});
+			//clicks first element
+			groupView.performItemClick(groupView.getAdapter().getView(0, null, null), 
+					0, groupView.getAdapter().getItemId(0));
 			
 		} else {
 			firstLevelGroupAdapter.updateView(pictograms);
@@ -1063,7 +1072,7 @@ public List<String[]> filterMessages(JSONArray messages) throws JSONException{
 	
 	private void updateSubGroupAdapter(List<Pictogram> pictograms){
 		if(subGroupAdapter == null){
-			subGroupAdapter = new GroupAdapter(MessageActivity.this, pictograms);
+			subGroupAdapter = new GroupAdapter(MessageActivity.this, pictograms, true);
 			subGroupsView.setAdapter(subGroupAdapter);
 			subGroupsView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
 				@Override

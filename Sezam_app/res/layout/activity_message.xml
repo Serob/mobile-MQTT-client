@@ -65,13 +65,14 @@
 	            android:layout_height="@dimen/message_history_height"
 	            android:scrollY="@dimen/message_history_height"
 	            android:stackFromBottom="true"
-	            android:transcriptMode="alwaysScroll" >
+	            android:transcriptMode="alwaysScroll" 
+	            android:background="#DDDDDD">
 
 	            <LinearLayout
 	                android:id="@+id/messageHistory"
 	                android:layout_width="match_parent"
 	                android:layout_height="@dimen/message_history_height"
-	                android:orientation="vertical" >
+	                android:orientation="vertical">
 	            </LinearLayout>
 	        </ScrollView>
 
@@ -79,14 +80,16 @@
 	            android:id="@+id/relativeLayout1"
 	            android:layout_width="match_parent"
 	            android:layout_height="@dimen/new_message_height"
-	            android:background="#22DD33" >
+	            android:background="#FFFFFF" >
 	            
 	            <GridView 
 	                android:id="@+id/newMessage"
 	                android:layout_height="@dimen/new_message_height"
-	                android:layout_width="1200dp"
+	                android:layout_width="wrap_content"
+	                android:layout_alignParentLeft="true"
+	                android:layout_toLeftOf="@+id/send"
 	                android:orientation="horizontal" 
-	                android:numColumns="@integer/new_message_icon_count"/>
+	                android:numColumns="@integer/new_message_icons_count"/>
 
 	            <!-- <LinearLayout
 	                android:id="@+id/linearLayout1"
@@ -96,18 +99,39 @@
 	                android:orientation="horizontal" >
 	            </LinearLayout> -->
 
-	            <ImageButton
-	                android:id="@+id/send"
-	                android:layout_width="@dimen/control_button_width"
-	                android:layout_height="@dimen/control_button_height"
+				<!-- <RelativeLayout 
+				    android:id="@+id/test_Rel"
+				    android:layout_width="@dimen/control_button_width"
+	                android:layout_height="match_parent"
 	                android:layout_alignParentRight="true"
-	                android:layout_alignParentTop="true"
-	                android:gravity="right"
-	                android:onClick="sendMessage"
-	                android:src="@drawable/send"
-	                android:text="Send" />
+	                android:background="#CCCCCC" > -->
+	                
+				   <!--  <ImageButton
+		                android:id="@+id/send"
+		                android:layout_width="@dimen/control_button_width"
+		                android:layout_height="match_parent"
+		                android:layout_alignParentRight="true"
+		                android:layout_centerVertical="true"
+		                android:onClick="sendMessage"
+		                android:src="@drawable/send"
+		                android:contentDescription="Send"
+		                android:background="@drawable/control_buttons_state" /> -->
+				    
+				    <ImageView
+		                android:id="@+id/send"
+		                android:layout_width="@dimen/control_button_width"
+		                android:layout_height="match_parent"
+		                android:layout_alignParentRight="true"
+		                android:layout_centerVertical="true"
+		                android:onClick="sendMessage"
+		                android:src="@drawable/send"
+		                android:contentDescription="Send"/>
+				    
+	            <!-- </RelativeLayout> -->
+				
+	            
 
-	            <ImageButton
+	           <!--  <ImageButton
 	                android:id="@+id/back"
 	                android:layout_width="@dimen/control_button_width"
 	                android:layout_height="@dimen/control_button_height"
@@ -116,32 +140,61 @@
 	                android:gravity="right"
 	                android:onClick="backButton"
 	                android:src="@drawable/back"
-	                android:text="Back" />
+	                android:text="Back" /> -->
 	        </RelativeLayout>
 	        
-	         <GridView
-	            android:id="@+id/firstLevelGroups_view"
+	        <RelativeLayout 
 	            android:layout_width="wrap_content"
-	            android:layout_height="@dimen/pictogram_group_height"
-	            android:background="#CCCCCC"
-	            android:orientation="horizontal" 
-	            android:choiceMode="singleChoice"
-	            android:numColumns="10"/>
+		        android:layout_height="@dimen/pictogram_group_height" 
+		        android:background="#DDDDDD">
+		         <GridView
+		            android:id="@+id/firstLevelGroups_view"
+		            android:layout_width="match_parent"
+		            android:layout_height="match_parent"
+		            android:layout_alignParentLeft="true"
+	                android:layout_toLeftOf="@+id/back"
+		            android:orientation="horizontal" 
+		            android:choiceMode="singleChoice"
+		            android:numColumns="10"/>
+		         
+	         	<ImageView
+	                android:id="@+id/back"
+	                android:layout_width="@dimen/control_button_width"
+	                android:layout_height="match_parent"
+	                android:layout_alignParentRight="true"
+	                android:layout_centerVertical="true"
+	                android:onClick="backButton"
+	                android:src="@drawable/back"
+	                android:contentDescription="back"/>
+	        </RelativeLayout>
 	         
-	         <GridView
-	            android:id="@+id/subGroups_view"
+	        <RelativeLayout 
 	            android:layout_width="wrap_content"
-	            android:layout_height="@dimen/pictogram_group_height"
-	            android:background="#CCCCCC"
-	            android:orientation="horizontal"
-	            android:choiceMode="singleChoice"
-	            android:numColumns="10" />
+		        android:layout_height="@dimen/pictogram_group_height" 
+		        android:background="#DDDDDD">
+		         <GridView
+		            android:id="@+id/subGroups_view"
+		            android:layout_width="match_parent"
+		            android:layout_height="match_parent"
+		             android:layout_toLeftOf="@+id/empty"
+		            android:orientation="horizontal"
+		            android:choiceMode="singleChoice"
+		            android:numColumns="10" />
+		         
+		         <ImageView
+	                android:id="@+id/empty"
+	                android:layout_width="@dimen/control_button_width"
+	                android:layout_height="match_parent"
+	                android:layout_alignParentRight="true"
+	                android:layout_centerVertical="true"
+	                android:contentDescription="empty"/>
+	         </RelativeLayout>
 	        
 	        <GridView 
 	            android:id="@+id/gridView1"
 	            android:layout_width="wrap_content"
 	            android:layout_height="match_parent"
-	            android:background="#CCCCCC"
+	            android:background="#FFFFFF"
 	            android:orientation="horizontal"
 	            android:numColumns="@integer/keyboard_column_count" />
 

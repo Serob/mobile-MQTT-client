@@ -1,6 +1,8 @@
 package com.spb.sezam;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -113,7 +115,7 @@ public class NavigationDrawerFragment extends Fragment {
 
 		@Override
 		public void onError(VKError error) {
-			Log.e("Error on Friends load", "Error on Friends load");
+			Log.e("Friends load", "Error on Friends load");
 			ErrorUtil.showError(getActivity(), error);
 		}
 	};
@@ -167,6 +169,12 @@ public class NavigationDrawerFragment extends Fragment {
 				e.printStackTrace();
 			}
 			
+		}
+		
+		@Override
+		public void onError(VKError error) {
+			Log.e("Recieve dialogs", "Error on recieve Dialogs");
+			ErrorUtil.showError(getActivity(), error);
 		}
 	};
 
@@ -264,18 +272,21 @@ public class NavigationDrawerFragment extends Fragment {
     private void checkUnreadeMessages(){
 		VKRequest request = new VKRequest("messages.getDialogs", VKParameters.from("unread", "1", "preview_length", "20"));
 		request.executeWithListener(recieveDialogsListener);
+		SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:ss.SSS");
+		Date date = new Date();
+		Log.w("Time", "Dialogs recive at " + sdf.format(date));
 	}
     
     private void checkUnreadeMessagesPeriodicly() {
 		checkUnreadMessagesRunnable = new Runnable() {
 			public void run() {
 				checkUnreadeMessages();
-				handler.postDelayed(this, 4000);
+				handler.postDelayed(this, 5000);
 			}
 		};
 		
 		unReadDialogsCount = 0;
-		handler.postDelayed(checkUnreadMessagesRunnable, 500);
+		handler.postDelayed(checkUnreadMessagesRunnable, 800);
 	}
 
     @Override
@@ -414,6 +425,7 @@ public class NavigationDrawerFragment extends Fragment {
         }
         if (mCallbacks != null) {
             mCallbacks.onNavigationDrawerItemSelected(user);
+            handler.removeCallbacks(checkUnreadMessagesRunnable);
             checkUnreadeMessagesPeriodicly();
         }
     }

@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import android.content.Context;
+import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -20,15 +21,22 @@ public class GroupAdapter extends BaseAdapter{
 
 	private final Context context;
 	private List<? extends Pictogram> groups = new ArrayList<>();
+	private boolean isSubGroup = false;
 	
 	static class ViewHolder {
 		public Button subGroupItem;
 	}
 	
-	//but list content should have GroupPictogram type
-	public GroupAdapter(Context context, List<? extends Pictogram> subGroups){
+	public GroupAdapter(Context context, List<? extends Pictogram> groups){
 		this.context = context;
-		this.groups = subGroups;
+		this.groups = groups;
+		this.isSubGroup = false;
+	}
+	
+	public GroupAdapter(Context context, List<? extends Pictogram> groups, boolean isSubGroup){
+		this.context = context;
+		this.groups = groups;
+		this.isSubGroup = isSubGroup;
 	}
 	
 	@Override
@@ -50,6 +58,12 @@ public class GroupAdapter extends BaseAdapter{
 		GroupPictogram group = getItem(position);
 		String ruName = NameManager.getInstance().getGroupRuName(group.getPath());
 		holder.subGroupItem.setText(ruName);
+		//small font for subGroups
+		if(isSubGroup){
+			float fontInPx = context.getResources().getDimension(R.dimen.button_font_size);
+			int fontInSp = (int) (fontInPx / context.getResources().getDisplayMetrics().scaledDensity);
+			holder.subGroupItem.setTextSize(TypedValue.COMPLEX_UNIT_SP, fontInSp - 2);
+		}
 		UIUtil.addGroupIconToButton(holder.subGroupItem, group, context.getResources());
 		
 		return elementView;
