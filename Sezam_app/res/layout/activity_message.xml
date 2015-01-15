@@ -82,22 +82,30 @@
 	            android:layout_height="@dimen/new_message_height"
 	            android:background="#FFFFFF" >
 	            
-	            <GridView 
-	                android:id="@+id/newMessage"
-	                android:layout_height="@dimen/new_message_height"
-	                android:layout_width="wrap_content"
-	                android:layout_alignParentLeft="true"
-	                android:layout_toLeftOf="@+id/send"
-	                android:orientation="horizontal" 
-	                android:numColumns="@integer/new_message_icons_count"/>
+	         
+		           <!--  <com.spb.sezam.widged.HorizontialListView 
+		                android:id="@+id/newMessage"
+		                android:layout_height="@dimen/new_message_height"
+		                android:layout_width="wrap_content"
+		                android:orientation="horizontal"
+		                android:layout_alignParentLeft="true"
+	                	android:layout_toLeftOf="@+id/send" 
+		                /> -->
+	            
 
-	            <!-- <LinearLayout
-	                android:id="@+id/linearLayout1"
-	                android:layout_width="match_parent"
+			   <HorizontalScrollView 
+	               	android:id="@+id/new_mess_scroll"
 	                android:layout_height="@dimen/new_message_height"
+	                android:layout_width="wrap_content" 
 	                android:layout_alignParentLeft="true"
-	                android:orientation="horizontal" >
-	            </LinearLayout> -->
+	                android:layout_toLeftOf="@+id/send"> 
+		            <LinearLayout
+		                android:id="@+id/linearLayout1"
+		                android:layout_width="wrap_content"
+		                android:layout_height="match_parent"
+		                android:orientation="horizontal" >
+		            </LinearLayout> 
+	           </HorizontalScrollView> 
 
 				<!-- <RelativeLayout 
 				    android:id="@+id/test_Rel"
@@ -169,6 +177,7 @@
 	        </RelativeLayout>
 	         
 	        <RelativeLayout 
+	            android:id="@+id/subGroups_container"
 	            android:layout_width="wrap_content"
 		        android:layout_height="@dimen/pictogram_group_height" 
 		        android:background="#DDDDDD">
@@ -176,7 +185,7 @@
 		            android:id="@+id/subGroups_view"
 		            android:layout_width="match_parent"
 		            android:layout_height="match_parent"
-		             android:layout_toLeftOf="@+id/empty"
+		            android:layout_toLeftOf="@+id/empty"
 		            android:orientation="horizontal"
 		            android:choiceMode="singleChoice"
 		            android:numColumns="10" />
