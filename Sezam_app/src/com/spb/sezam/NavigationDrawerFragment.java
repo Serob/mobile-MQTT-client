@@ -125,7 +125,22 @@ public class NavigationDrawerFragment extends Fragment {
 		@Override
 		public void onComplete(VKResponse response) {
 			try {
-				JSONArray messages = response.json.getJSONObject("response").getJSONArray("items");
+				JSONArray dialogs = response.json.getJSONObject("response").getJSONArray("items");
+				JSONArray messages = new JSONArray();
+				
+				for(int i=0; i<dialogs.length(); i++){
+					JSONObject dialog = (JSONObject)dialogs.get(i);
+					//exclude chats
+					try{
+						dialog.getJSONObject("message").getInt("chat_id");
+						
+					} catch (JSONException e) {
+						//if not in chat
+						messages.put(dialog);
+					}
+					
+				}
+				
 				unReadDialogsCount = messages.length();
 				
 				JSONObject dialogInfo = null;
@@ -278,6 +293,8 @@ public class NavigationDrawerFragment extends Fragment {
 	}
     
     private void checkUnreadeMessagesPeriodicly() {
+    	//let it as was before (not like reciveMessage) cause need interval (800) 
+    	//and be really periodically , even if app is in background
 		checkUnreadMessagesRunnable = new Runnable() {
 			public void run() {
 				checkUnreadeMessages();
