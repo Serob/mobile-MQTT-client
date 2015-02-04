@@ -136,7 +136,10 @@ public class NavigationDrawerFragment extends Fragment {
 						
 					} catch (JSONException e) {
 						//if not in chat
-						messages.put(dialog);
+						if(isInUsersList(dialog.getJSONObject("message").getInt("user_id"))){
+							//and message is sent by friend(user)
+							messages.put(dialog);
+						}
 					}
 					
 				}
@@ -192,7 +195,16 @@ public class NavigationDrawerFragment extends Fragment {
 			ErrorUtil.showError(getActivity(), error);
 		}
 	};
+	//-------------------------------------------------------//
 
+	private boolean isInUsersList(int userId) throws JSONException{
+		for(JSONObject user : users){
+			if(user.getInt("id") == userId){
+				return true;
+			}
+		}
+		return false;
+	}
 	
     public NavigationDrawerFragment() {
     }
