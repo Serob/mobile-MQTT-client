@@ -1388,7 +1388,7 @@
 	       ru_name="й"/>
 	<file 
 	       file_name="9.drugoe/1.klaviatura/26.k.png" 
-	       ru_name="к"/>
+	       ru_name=" к"/> <!-- with space -->
 	<file 
 	       file_name="9.drugoe/1.klaviatura/27.l.png" 
 	       ru_name="л"/>
@@ -1451,7 +1451,7 @@
 	       ru_name="ю"/>
    <file 
 	       file_name="9.drugoe/1.klaviatura/47.ia.png" 
-	       ru_name="я"/> 
+	       ru_name=" я"/> <!-- with space -->
    <file 
 	       file_name="9.drugoe/3.predlogi/1.k.jpg" 
 	       ru_name="к"/>
