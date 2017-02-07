@@ -101,7 +101,7 @@
 	                android:layout_height="@dimen/new_message_height"
 	                android:layout_width="wrap_content" 
 	                android:layout_alignParentLeft="true"
-	                android:layout_toLeftOf="@+id/send"> 
+	                android:layout_toLeftOf="@+id/server_checkBox"> 
 	                
 	                <!-- Margins with size of relative's frame boarder -->
 		            <LinearLayout
@@ -113,25 +113,24 @@
 		                android:layout_marginBottom="2dp"  >
 		            </LinearLayout> 
 	           </HorizontalScrollView> 
+	           
+	<!-- 		   	 <Switch
+		            android:id="@+id/serverSwitch"
+		            android:text="Our server" 
+		            
+		            android:layout_height="match_parent"
+		             
+		            />  -->
+		            				    
+		          <CheckBox
+				        android:id="@+id/server_checkBox"
+				        android:layout_width="wrap_content"
+				        android:layout_height="match_parent"
+				        android:layout_toLeftOf="@+id/send"
+				        android:layout_centerVertical="true"
+				        android:text="Server" /> 
 
-				<!-- <RelativeLayout 
-				    android:id="@+id/test_Rel"
-				    android:layout_width="@dimen/control_button_width"
-	                android:layout_height="match_parent"
-	                android:layout_alignParentRight="true"
-	                android:background="#CCCCCC" > -->
-	                
-				   <!--  <ImageButton
-		                android:id="@+id/send"
-		                android:layout_width="@dimen/control_button_width"
-		                android:layout_height="match_parent"
-		                android:layout_alignParentRight="true"
-		                android:layout_centerVertical="true"
-		                android:onClick="sendMessage"
-		                android:src="@drawable/send"
-		                android:contentDescription="Send"
-		                android:background="@drawable/control_buttons_state" /> -->
-				    
+		 		    
 				    <ImageView
 		                android:id="@+id/send"
 		                android:layout_width="@dimen/control_button_width"
@@ -140,10 +139,7 @@
 		                android:layout_centerVertical="true"
 		                android:onClick="sendMessage"
 		                android:src="@drawable/send"
-		                android:contentDescription="Send"/>
-				    
-	            <!-- </RelativeLayout> -->
-				
+		                android:contentDescription="Send"/> 
 	            
 
 	           <!--  <ImageButton
@@ -156,6 +152,7 @@
 	                android:onClick="backButton"
 	                android:src="@drawable/back"
 	                android:text="Back" /> -->
+
 	        </RelativeLayout>
 	        
 	        <RelativeLayout 
