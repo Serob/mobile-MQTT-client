@@ -6,6 +6,16 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+import org.eclipse.paho.android.service.MqttAndroidClient;
+import org.eclipse.paho.client.mqttv3.IMqttActionListener;
+import org.eclipse.paho.client.mqttv3.IMqttDeliveryToken;
+import org.eclipse.paho.client.mqttv3.IMqttToken;
+import org.eclipse.paho.client.mqttv3.MqttCallback;
+import org.eclipse.paho.client.mqttv3.MqttCallbackExtended;
+import org.eclipse.paho.client.mqttv3.MqttConnectOptions;
+import org.eclipse.paho.client.mqttv3.MqttException;
+import org.eclipse.paho.client.mqttv3.MqttMessage;
+import org.eclipse.paho.client.mqttv3.MqttPersistenceException;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -37,6 +47,7 @@ import com.vk.sdk.api.VKResponse;
 
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Bitmap;
@@ -45,8 +56,11 @@ import android.graphics.Typeface;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
+import android.provider.Settings.Secure;
+import android.provider.Telephony;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarActivity;
+import android.telephony.TelephonyManager;
 import android.util.Log;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -94,7 +108,11 @@ public class MessageActivity extends BaseActivity implements NavigationDrawerCal
 	private Menu menu;
 	
 	private View.OnClickListener onPictogramClickListener ;
-
+	
+	/** MQTT */
+	private String deviceId;
+	private final String serverURI = "tcp://192.168.1.103:1883"; //only tcp:, ssl:, local: //js-in@ wws:, mqtt:
+	private MqttAndroidClient mqttClient;
 	
 	//--------------------------------VK listeners-----------------------------//
 	private VKRequestListener messageSendListener  = new VKRequestListener(){
@@ -189,7 +207,71 @@ public class MessageActivity extends BaseActivity implements NavigationDrawerCal
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
+		///mqtt test
+		MqttConnectOptions mqttOptions = new MqttConnectOptions();
+		mqttOptions.setAutomaticReconnect(true);
+		mqttOptions.setCleanSession(false);
 		
+		TelephonyManager tm =(TelephonyManager) getApplicationContext().getSystemService(Context.TELEPHONY_SERVICE);
+		deviceId = tm.getDeviceId();
+		if(deviceId == null){
+			deviceId = Secure.getString(getApplicationContext().getContentResolver(),
+                Secure.ANDROID_ID); 
+		}
+		deviceId = "sezam." + deviceId;
+		
+		mqttClient = new MqttAndroidClient(getApplicationContext(), serverURI,
+				deviceId);
+		mqttClient.setCallback(new MqttCallbackExtended() {
+			@Override
+			public void connectComplete(boolean reconnect, String serverURI) {
+				Log.i("MQTT", "Connection complieted successfully");
+			}
+			
+			@Override
+			public void connectionLost(Throwable cause) {
+				Log.e("MQTT", "Connection was lost!");
+			}
+
+			@Override
+			public void messageArrived(String topic, MqttMessage message) throws Exception {
+				Log.i("MQTT", "Message Arrived!: " + topic + ": "
+						+ new String(message.getPayload()));
+			}
+
+			@Override
+			public void deliveryComplete(IMqttDeliveryToken token) {
+				Log.i("MQTT", "Delivery Complete!");
+			}
+		});
+
+        try {
+            mqttClient.connect(mqttOptions, null, new IMqttActionListener() {
+                @Override
+                public void onSuccess(IMqttToken asyncActionToken) {
+                    Log.v("MQTT","Connection Success!");
+                    try {
+                        Log.i("MQTT", "Subscribing to pressence");
+                        mqttClient.subscribe("user/message", 1); //qos
+                        Log.i("MQTT","Subscribed to presence");
+                        //Log.w("","Publishing message..");
+                        //mqttAndroidClient.publish("/test", new MqttMessage("Hello world!".getBytes()));
+                    } catch (MqttException ex) {
+                    	Log.e("MQTT unexpected ERROR", ex.getMessage());
+                    }
+                }
+
+                @Override
+                public void onFailure(IMqttToken asyncActionToken, Throwable ex) {
+                    Log.e("MQTT ERROR","Connection Failure! " + ex.getMessage());
+                }
+            });
+        } catch (MqttException ex) {
+        	Log.e("MQTT unexpected ERROR",ex.getMessage());
+        }
+	    ///
+        
+        
 		super.onCreate(savedInstanceState);
 		VKUIHelper.onCreate(this);
 		
@@ -214,19 +296,6 @@ public class MessageActivity extends BaseActivity implements NavigationDrawerCal
 		//createButtonsFromAssets();
 		initOnPictogramClickListener();
 		//PictogramManager.getInstance().init(MessageActivity.this);
-		
-		
-		/*ImageButton btn1 = (ImageButton)findViewById(R.id.imageButton1);
-        btn1.setOnClickListener(this);
-
-        ImageButton btn2 = (ImageButton)findViewById(R.id.imageButton2);
-        btn2.setOnClickListener(this);
-
-        ImageButton btn3 = (ImageButton)findViewById(R.id.imageButton3);
-        btn3.setOnClickListener(this);
-
-        ImageButton btn4 = (ImageButton)findViewById(R.id.imageButton4);
-        btn4.setOnClickListener(this);*/
 
 		mNavigationDrawerFragment = (NavigationDrawerFragment)
                 getSupportFragmentManager().findFragmentById(R.id.navigation_drawer);
@@ -478,8 +547,8 @@ public class MessageActivity extends BaseActivity implements NavigationDrawerCal
 	}	
 	
 	public void sendMessage(View v){
+		StringBuilder messageString = new StringBuilder();
 		if(messageToSend.size() > 0){
-	        StringBuilder messageString = new StringBuilder();
 	        for(String msg : messageToSend){
 	        	messageString.append(msg);
 	        }
@@ -488,14 +557,19 @@ public class MessageActivity extends BaseActivity implements NavigationDrawerCal
 		        		"user_id", String.valueOf(activeUserId), 
 		        		"message", messageString.toString(), "guid", guId));
 			request.executeWithListener(messageSendListener);
+		
+			//MQTT send
+			if(mqttClient != null){
+				MqttMessage message = new MqttMessage();
+	            message.setPayload(messageString.toString().getBytes());
+				try {
+					mqttClient.publish("otherUser/message", message);
+				} catch (MqttException e) {
+					Log.e("MQTT ERROR", "Publish error: " + e.getMessage());
+				}
+			}
 		}
-		
-		//test for picture
-		
-		 //VKApi.uploadWallPhotoRequest(image, userId, groupId)
-		 
-//		VKRequest request = new VKRequest("photos.getMessagesUploadServer");
-//		request.executeWithListener(messageSendListener);
+
 	}
 	
 	public void recieveMessageHistory(int messagesCount){

@@ -83,14 +83,14 @@ public class PictogramManager {
 			//(because of am.list() is slow, otherwise we can call .list for every file)
 			if(name.matches(imagePatern)){
 				//maybe here
-				Log.w("Path", "Path = " + fullFolderPath + File.separator + name);
+				//Log.w("Path", "Path = " + fullFolderPath + File.separator + name);
 				//BitmapDrawable bd = new BitmapDrawable(ctx.getResources(), am.open(fullFolderPath + File.separator + name));
 				
 				Pictogram pictogram= new Pictogram(path + File.separator + name);
 				//pictogram.setIcon(bd);
 				pGroup.addInnerPictogram(pictogram);
 			} else {
-				Log.i("GROUP", "GROUP = " + fullFolderPath + File.separator + name);
+				//Log.i("GROUP", "GROUP = " + fullFolderPath + File.separator + name);
 				GroupPictogram nestedGroup = new GroupPictogram(path + File.separator + name);
 				pGroup.addInnerPictogram(nestedGroup);
 				allGroups.add(nestedGroup);
