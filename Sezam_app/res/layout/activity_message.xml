@@ -6,26 +6,12 @@
     android:layout_height="match_parent"
     tools:context=".MessageActivity" >
 
-    <!-- align right, heto ToLeftOf relative-um 
-    	Obshin Linear, vor 'gone' aneluc exception chqci -->
-	    <!--
-             As the main content view, the view below consumes the entire
-	         space available using match_parent in both dimensions.
-	    -->
 
 	     <RelativeLayout
 	         android:id="@+id/helloView"
 	         android:layout_width="match_parent"
 	         android:layout_height="match_parent" >
-	         
-	       <!-- <Button
-		        android:layout_width="70dp"
-		        android:layout_height="70dp"
-		        android:background="@drawable/group_border"
-		        android:drawableTop="@drawable/count_1"
-		        android:textColor="#FF0000"
-		        android:id="@+id/ButtonTest"
-		        android:text="this is text"/> -->
+
 	         
 		    <TextView 
 		        android:id="@+id/startHelloText"
@@ -85,15 +71,6 @@
 	            android:layout_marginTop="4dp"
 	            android:layout_marginBottom="4dp">
 	            
-	         
-		           <!--  <com.spb.sezam.widged.HorizontialListView 
-		                android:id="@+id/newMessage"
-		                android:layout_height="@dimen/new_message_height"
-		                android:layout_width="wrap_content"
-		                android:orientation="horizontal"
-		                android:layout_alignParentLeft="true"
-	                	android:layout_toLeftOf="@+id/send" 
-		                /> -->
 	            
 
 			   <HorizontalScrollView 
@@ -113,14 +90,7 @@
 		                android:layout_marginBottom="2dp"  >
 		            </LinearLayout> 
 	           </HorizontalScrollView> 
-	           
-	<!-- 		   	 <Switch
-		            android:id="@+id/serverSwitch"
-		            android:text="Our server" 
-		            
-		            android:layout_height="match_parent"
-		             
-		            />  -->
+
 		            				    
 		          <CheckBox
 				        android:id="@+id/server_checkBox"
@@ -140,18 +110,7 @@
 		                android:onClick="sendMessage"
 		                android:src="@drawable/send"
 		                android:contentDescription="Send"/> 
-	            
 
-	           <!--  <ImageButton
-	                android:id="@+id/back"
-	                android:layout_width="@dimen/control_button_width"
-	                android:layout_height="@dimen/control_button_height"
-	                android:layout_alignParentBottom="true"
-	                android:layout_alignParentRight="true"
-	                android:gravity="right"
-	                android:onClick="backButton"
-	                android:src="@drawable/back"
-	                android:text="Back" /> -->
 
 	        </RelativeLayout>
 	        
@@ -214,17 +173,6 @@
 	        
 	    </LinearLayout>
 
-	    <!--
-             android:layout_gravity="start" tells DrawerLayout to treat
-	         this as a sliding drawer on the left side for left-to-right
-	         languages and on the right side for right-to-left languages.
-	         If you're not building against API 17 or higher, use
-	         android:layout_gravity="left" instead.
-	    -->
-	    <!--
-             The drawer is given a fixed width in dp and extends the full height of
-	         the container.
-	    -->
 
 	    <fragment
 	        android:id="@+id/navigation_drawer"

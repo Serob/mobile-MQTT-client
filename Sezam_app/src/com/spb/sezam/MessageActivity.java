@@ -125,9 +125,6 @@ public class MessageActivity extends BaseActivity implements NavigationDrawerCal
 			LinearLayout formLayout = (LinearLayout) findViewById(R.id.linearLayout1);
 			formLayout.removeAllViews();
 			
-			/*pictogramsToSend.clear();
-			newMessageAdapter.updateView(pictogramsToSend);*/
-			
 			messageToSend.clear();
 			Toast showSent = Toast.makeText(getApplicationContext(), "Сообщение отправлено", Toast.LENGTH_SHORT);
 			showSent.show();
@@ -166,25 +163,13 @@ public class MessageActivity extends BaseActivity implements NavigationDrawerCal
 	        //List<String[]> ourMessages = null; 
 	        try {
 	        	JSONArray messages = response.json.getJSONObject("response").getJSONArray("items");
-	        	//ourMessages = filterMessages(messages, true);
-	        	//show images
-	            //decodeTextToImages(ourMessages);
-	        	
-	            //must be only when Activity starts
 	        	
 	        	JSONArray newMessages = findNewMessages(allMessages, messages);
 	        	int length = newMessages.length();
 	        	if(length != 0){
 		            showHistory(newMessages);
 		            scorllDown((ScrollView)findViewById(R.id.scrollView1));
-		            /*if(isThereRecieved(newMessages) && newMessages != messages){
-		            	Toast showSent = Toast.makeText(getApplicationContext(), "Получено новое сообщение", Toast.LENGTH_SHORT);
-		    			showSent.show();
-		            }*/
-		            
-		            //mark received new messages as read
-		            //should be some trick here to prevent mark as read when drawer is opened
-		            //if(!mNavigationDrawerFragment.isDrawerOpen()){
+
 			            StringBuilder messagsIds = new StringBuilder();
 			            //this approach is not good for first call
 			            for(int i=0; i < length; i++){
@@ -197,8 +182,6 @@ public class MessageActivity extends BaseActivity implements NavigationDrawerCal
 			            VKRequest request = new VKRequest("messages.markAsRead", VKParameters.from(
 				        		"message_ids", messagsIds.toString()));
 						request.executeWithListener(markAsReadListener);
-						//
-		        	//}
 		            
 	        	}
 	            allMessages = messages;
@@ -219,10 +202,8 @@ public class MessageActivity extends BaseActivity implements NavigationDrawerCal
 		
 		@Override
 		public void onError(VKError error) {
-		//	ActivityUtil.showError(MessageActivity.this, error);
 		}
 	};
-	//---------------------------End of VK listenres---------------------------//
 	
 	
 	@Override
@@ -240,8 +221,7 @@ public class MessageActivity extends BaseActivity implements NavigationDrawerCal
 		}
 		deviceId = "sezam." + deviceId;
 		
-		mqttClient = new MqttAndroidClient(getApplicationContext(), serverURI,
-				deviceId);
+		mqttClient = new MqttAndroidClient(getApplicationContext(), serverURI,deviceId);
 		mqttClient.setCallback(new MqttCallbackExtended() {
 			@Override
 			public void connectComplete(boolean reconnected, String serverURI) {
@@ -249,11 +229,6 @@ public class MessageActivity extends BaseActivity implements NavigationDrawerCal
 					subscribeToTopic();
 				}
 				Log.i("MQTT", "Connection complieted successfully");
-			}
-			
-			@Override
-			public void connectionLost(Throwable cause) {
-				Log.e("MQTT", "Connection was lost!");
 			}
 
 			@Override
@@ -266,6 +241,11 @@ public class MessageActivity extends BaseActivity implements NavigationDrawerCal
 			@Override
 			public void deliveryComplete(IMqttDeliveryToken token) {
 				Log.i("MQTT", "Delivery Complete!");
+			}
+			
+			@Override
+			public void connectionLost(Throwable cause) {
+				Log.e("MQTT", "Connection was lost!");
 			}
 		});
 
@@ -291,7 +271,6 @@ public class MessageActivity extends BaseActivity implements NavigationDrawerCal
 		super.onCreate(savedInstanceState);
 		VKUIHelper.onCreate(this);
 		
-		//if not initialized in other activity (VKActivity ;)) then init
 		if(VKSdk.instance() == null){
 			initVKSdk();
 	        VKSdk.wakeUpSession();
@@ -299,7 +278,6 @@ public class MessageActivity extends BaseActivity implements NavigationDrawerCal
 		setContentView(R.layout.activity_message);
 		
 		subGroupsView = (GridView)findViewById(R.id.subGroups_view);
-		//subGroupsView.setChoiceMode(GridView.CHOICE_MODE_SINGLE);
 		pictogramsGridView = (GridView)findViewById(R.id.gridView1);
 		
 		historyImageSize = (int)(getResources().getDimension(R.dimen.new_message_height)/1.2);
@@ -307,11 +285,8 @@ public class MessageActivity extends BaseActivity implements NavigationDrawerCal
 		new ManagersInitializer().execute();
 		initImageLoader();
 		View view = findViewById(R.id.container);
-		view.setVisibility(View.INVISIBLE); //or gone
-		//createButtonsFromDrawables();
-		//createButtonsFromAssets();
+		view.setVisibility(View.INVISIBLE); 
 		initOnPictogramClickListener();
-		//PictogramManager.getInstance().init(MessageActivity.this);
 
 		mNavigationDrawerFragment = (NavigationDrawerFragment)
                 getSupportFragmentManager().findFragmentById(R.id.navigation_drawer);
@@ -319,36 +294,11 @@ public class MessageActivity extends BaseActivity implements NavigationDrawerCal
 		mNavigationDrawerFragment.setUp(
                 R.id.navigation_drawer,
                 (DrawerLayout) findViewById(R.id.drawer_layout));
-		
-//        Intent intent = getIntent();
-        //String activefriend = intent.getStringExtra(FriendsActivity.EXTRA_MESSAGE);
-        
-//		try {
-//			JSONObject activeFriend = new JSONObject(intent.getStringExtra(FriendsActivity.EXTRA_MESSAGE));
-//			activeFriendName = activeFriend.getString("first_name") + " " + activeFriend.getString("last_name");
-//			activeFriendId = activeFriend.getInt("id");
-//		} catch (JSONException e) {
-//			// TODO To be handled
-//			e.printStackTrace();
-//		}
-        
-        /*TextView txt = (TextView)findViewById(R.id.textView1);
-        txt.setText(activeFriendName);*/
-        //scorllDown((ScrollView)findViewById(R.id.scrollView1));
-        //decodeTextToImages();
-        
-        //up button for actionbar
-        //getActionBar().setDisplayHomeAsUpEnabled(true);
-        //getActionBar().setBackgroundDrawable(new ColorDrawable(Color.parseColor("#aaaaaa")));
 	}
 	
 	private void subscribeToTopic(){
         try {
-            Log.i("MQTT", "Subscribing to user/message");
-            
-            mqttClient.subscribe("user/message", 1);
-            
-            Log.i("MQTT","Subscribed to user/message");
+            mqttClient.subscribe("user/message", 1); //qos 1
         } catch (MqttException ex) {
         	Log.e("MQTT unexpected ERROR", ex.getMessage());
         }
@@ -365,9 +315,6 @@ public class MessageActivity extends BaseActivity implements NavigationDrawerCal
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
 		switch (item.getItemId()) {
-		/*case android.R.id.home:
-			NavUtils.navigateUpFromSameTask(this);
-			return true;*/
 		case R.id.action_exit:
 			AlertDialog.Builder builder = new AlertDialog.Builder(this);
 			builder.setMessage("Вы уверены?").setPositiveButton("Да", dialogClickListener).setNegativeButton("Нет", dialogClickListener).show();
@@ -396,13 +343,7 @@ public class MessageActivity extends BaseActivity implements NavigationDrawerCal
 			AlertDialog alert = aboutBuilder.create();
 			alert.show();
 			return true;
-		/*case R.id.action_message:
-			if(unReadDialogsCount > 0){
-				//should be changed
-				//NavUtils.navigateUpFromSameTask(this);
-				mNavigationDrawerFragment.openDrawer();
-				return true;
-			}*/
+
 		default:
 			return super.onOptionsItemSelected(item);
 		}
@@ -417,21 +358,14 @@ public class MessageActivity extends BaseActivity implements NavigationDrawerCal
 	        	Log.e("token=", VKSdk.getAccessToken().userId);
 	        	VKSdk.logout();
 	        	
-	        	// ------------------------BAD COPY-----------------------
 	        	if(handler != null){
 	    			handler.removeCallbacks(recieveMessagesRunnable);
-	    			//handler.removeCallbacks(checkUnreadMessagesRunnable);
 	    		}
 	        	startActivity(VKActivity.class);
 	        	setContentView(R.layout.activity_vk);
 
 				Button b = (Button) findViewById(R.id.sign_in_button);
-				// predefined in .xml as Войти
 				if (VKSdk.wakeUpSession()) {
-					Log.e("wakeUp", "wakeUp");
-					//startActivity(FriendsActivity.class);
-					// skzbi hamar shat el a
-					//b.setText("Выход!");
 					b.setOnClickListener(new View.OnClickListener() {
 						@Override
 						public void onClick(View view) {
@@ -461,14 +395,9 @@ public class MessageActivity extends BaseActivity implements NavigationDrawerCal
 						}
 					}
 				});
-				//// -------------------------------------------
-	            
-	            
-	            //Yes button clicked
 	            break;
 
 	        case DialogInterface.BUTTON_NEGATIVE:
-	            //No button clicked
 	            break;
 	        }
 	    }
@@ -481,7 +410,6 @@ public class MessageActivity extends BaseActivity implements NavigationDrawerCal
 	
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
-	    // Inflate the menu items for use in the action bar
 		this.menu = menu;
 	    MenuInflater inflater = getMenuInflater();
 	    inflater.inflate(R.menu.activity_message_actions, menu);
@@ -528,8 +456,6 @@ public class MessageActivity extends BaseActivity implements NavigationDrawerCal
 	 * @param lLayout {@link TextView} with {@code 'text'} parameter will be added to this layout
 	 */
 	private void showTextAsString(String text, LinearLayout lLayout) {
-		//if there is no info about image icon in the text
-		
 		if(text == null || "".equals(text)){
 			return;
 		}
@@ -576,9 +502,6 @@ public class MessageActivity extends BaseActivity implements NavigationDrawerCal
         	messageToSend.remove(messageToSend.size() - 1);
         	HorizontalScrollView hView = (HorizontalScrollView)findViewById(R.id.new_mess_scroll);
         	scrollRight(hView);
-        	
-        	/*pictogramsToSend.remove(pictogramsToSend.size() - 1);
-        	newMessageAdapter.updateView(pictogramsToSend);*/
         }
 	}	
 	
@@ -656,7 +579,6 @@ public class MessageActivity extends BaseActivity implements NavigationDrawerCal
 		super.onPause();
 		if(handler != null){
 			handler.removeCallbacks(recieveMessagesRunnable);
-			//handler.removeCallbacks(checkUnreadMessagesRunnable);
 		}
 	}
 
@@ -686,10 +608,8 @@ public class MessageActivity extends BaseActivity implements NavigationDrawerCal
 			return newList;
 		}
 		
-		//need to find oldList[0] in newList
 		JSONArray onlyNew = new JSONArray();
 		for(int i = 0; i < newList.length(); i++){
-			//we believe in VK API that every message should have its unique id...
 			JSONObject messageInNew = newList.getJSONObject(i);
 			if(messageInNew.getInt("id") == oldList.getJSONObject(0).getInt("id")){
 				break;
@@ -716,141 +636,13 @@ public class MessageActivity extends BaseActivity implements NavigationDrawerCal
 		}
 		return false;
 	}
-	
-	/**
-	 * Uses JAVA reflection
-	 */
-	/*private void createButtonsFromDrawables(){
-		//using reflection
-		LinearLayout lLayout = (LinearLayout) findViewById(R.id.linearLayout2);
-		Field[] drawableFields = R.drawable.class.getFields();
-		int resId;
-		for(Field field : drawableFields){
-			String fieldName = field.getName();
-			if(fieldName.startsWith("image_") && !fieldName.endsWith("thumb")){
-				try {
-					resId = field.getInt(null);
-					ImageButton btn = new ImageButton(MessageActivity.this);
-					LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
-							LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT);
-					params.leftMargin = 0;
-					
-					btn.setImageResource(resId);
-					btn.setContentDescription(fieldName);
-					btn.setLayoutParams(params);
-					
-					btn.setOnClickListener(new View.OnClickListener() {
-			            @Override
-			            public void onClick(View view) {
-			            	LinearLayout piktogram = (LinearLayout)findViewById(R.id.linearLayout1);
-			        		ImageView image = new ImageView(MessageActivity.this);
-			        		
-			        		String bgResourceName = view.getContentDescription() + "_thumb";
-			        		addImageNameToSendMessages(bgResourceName);
-			        		try {
-								int bgResourceId = R.drawable.class.getField(bgResourceName).getInt(null);
-								image.setBackgroundResource(bgResourceId);
-			        		} catch (IllegalAccessException
-									| IllegalArgumentException
-									| NoSuchFieldException e) {
-								e.printStackTrace();
-							}
-			    	        
-			    	        piktogram.addView(image);
-			            }
-			        });
-					
-					lLayout.addView(btn);
-					
-				} catch (IllegalAccessException | IllegalArgumentException e) {
-					e.printStackTrace();
-					continue;
-				}
-			}
-		}
-		
-	}*/
-	
-	
+
 	
 	/**
 	 * Uses assets
 	 */
 	private void createButtonsFromAssets(){
 		GridView lLayout = (GridView) findViewById(R.id.gridView1);
-		
-		/*LinearLayout firstLevelGorups = (LinearLayout)findViewById(R.id.linearLayout_groups);
-		List<Pictogram> list = PictogramManager.getInstance().init(MessageActivity.this).getPictograms();
-		
-		NameManager nManager = NameManager.getInstance();
-		XmlPullParser parser = getResources().getXml(R.xml.base);
-		nManager.init(parser);
-		
-		for(Pictogram pic : list){
-			Button group = new Button(MessageActivity.this);
-			String ruName = nManager.getGroupRuName(pic.getPath());
-			group.setText(ruName);
-			LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
-                    LayoutParams.MATCH_PARENT,
-                    LayoutParams.MATCH_PARENT, 1.0f);
-			group.setLayoutParams(params);
-			firstLevelGorups.addView(group);
-		}*/
-		
-		//adapter
-		//lLayout.setAdapter(new GridViewAdapter(MessageActivity.this, MessageActivity.this, list));
-		
-		/*try {
-			for(String name : am.list("test")){
-				ImageButton btn = new ImageButton(MessageActivity.this);
-				
-				//Bitmap a = BitmapFactory.decodeStream(am.open(name));
-				BitmapDrawable bd = new BitmapDrawable(getResources(), am.open("test"+ File.separator + name));
-				LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT);
-				params.leftMargin = 0;
-				
-				//btn.setBackground(bd);
-				btn.setImageDrawable(bd);
-				btn.setLayoutParams(params);
-				lLayout.addView(btn);
-				
-				//now in other clas, use it
-				String pattern = "[^\\.]([^.]*)$";
-			    Pattern afterLastDot = Pattern.compile(pattern);
-			    Matcher m = afterLastDot.matcher(name);
-			    if(m.find()){
-					name = m.group(0);
-			    }
-				btn.setContentDescription(name); 
-				
-				btn.setOnClickListener(new View.OnClickListener() {
-		            @Override
-		            public void onClick(View view) {
-		            	LinearLayout piktogram = (LinearLayout)findViewById(R.id.linearLayout1);
-		        		ImageView image = new ImageView(MessageActivity.this);
-		        		
-		        		String bgResourceName = (String)view.getContentDescription();
-		        		addImageNameToSendMessages(bgResourceName);
-		        		
-		        		AssetManager am = getAssets();
-		        		try {
-			        		BitmapDrawable bd = new BitmapDrawable(getResources(), am.open("test" + File.separator + bgResourceName));
-			        		
-			        		image.setBackground(bd);
-			        		piktogram.addView(image);
-							
-		        		} catch (IOException e) {
-							e.printStackTrace();
-						}
-		            }
-		        });
-				
-			}
-			
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}*/
 	}
 	
 	@Override
@@ -858,107 +650,7 @@ public class MessageActivity extends BaseActivity implements NavigationDrawerCal
 		super.onDestroy();
 		VKUIHelper.onDestroy(this);
 	}
-	
-	/*private void decodeTextToImages(List<String[]> messages){
-	LinearLayout historyLayout = (LinearLayout)findViewById(R.id.messageHistory);
-	String[] message = null;
-	for(int i = messages.size() - 1; i >= 0; i--){
-		message = messages.get(i);
-		LinearLayout innerLayout = new LinearLayout(MessageActivity.this);
-		historyLayout.addView(innerLayout);
-		
-		//tufta mas
-		ImageView image = null;
-		for(String word : message){
-			image = new ImageView(MessageActivity.this); 
-			if("чувствовать".equals(word)){
-				image.setBackgroundResource(R.drawable.image_1_thumb);
-			} else if("я".equals(word)){
-				image.setBackgroundResource(R.drawable.image_2_thumb);
-			} else if("хорошо".equals(word)){
-				image.setBackgroundResource(R.drawable.image_3_thumb);
-			} else if("чувствовать себя".equals(word)){
-				image.setBackgroundResource(R.drawable.image_4_thumb);
-			}
-			innerLayout.addView(image);
-		}
-		//
-	}
-}*/
-	
-	/*public List<String[]> filterMessages(JSONArray messages, boolean incomeOnly) throws JSONException{
-	String message = null;
-	List<String[]> ourMessages = new ArrayList<String[]>();
-	JSONObject messageJson = null;
-	
-	for(int i=0; i < messages.length(); i++ ){
-		messageJson = messages.getJSONObject(i);
-		int out = messageJson.getInt("out");
-		
-		if(incomeOnly && out == 1){
-			continue;
-		}
-		
-		message =  messageJson.getString("body").trim();
-		if(message.startsWith(APP_SEPARATOR_MESSAGE)){
-			message = message.replace(APP_SEPARATOR_MESSAGE, "");
-			String[] messageArr =  message.split(",");
-			ourMessages.add(messageArr);
-		}
-	}
-	return ourMessages;
-}
-
-public List<String[]> filterMessages(JSONArray messages) throws JSONException{
-	return filterMessages(messages, false);
-}*/
-	
-	/////////---------------- Newly added ----------------------
-	/// commented for place holder, 
-	////////----------------------------------------------------
-	
-	/**
-     * A placeholder fragment containing a simple view.
-     */
-    /*public static class PlaceholderFragment extends Fragment {
-        *//**
-         * The fragment argument representing the section number for this
-         * fragment.
-         *//*
-        private static final String ARG_SECTION_NUMBER = "section_number";
-
-        *//**
-         * Returns a new instance of this fragment for the given section
-         * number.
-         *//*
-        public static PlaceholderFragment newInstance(int sectionNumber) {
-            PlaceholderFragment fragment = new PlaceholderFragment();
-            Bundle args = new Bundle();
-            args.putInt(ARG_SECTION_NUMBER, sectionNumber);
-            fragment.setArguments(args);
-            return fragment;
-        }
-
-        public PlaceholderFragment() {
-        }
-
-        @Override
-        public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                                 Bundle savedInstanceState) {
-            View rootView = inflater.inflate(R.layout.fragment_main, container, false);
-            return rootView;
-        }
-
-        @Override
-        public void onAttach(Activity activity) {
-            super.onAttach(activity);
-            ((MessageActivity) activity).onSectionAttached(
-                    getArguments().getInt(ARG_SECTION_NUMBER));
-        }
-    }*/
-    
-	
-	//activity should implement 
+ 
 	/// NavigationDrawerFragment.NavigationDrawerCallbacks class
 	@Override
     public void onNavigationDrawerItemSelected(JSONObject user) {
@@ -992,16 +684,7 @@ public List<String[]> filterMessages(JSONArray messages) throws JSONException{
 		formLayout.removeAllViews();
 		
 		messageToSend.clear();
-		/*pictogramsToSend.clear();
-		if(newMessageAdapter == null){
-			newMessageAdapter = new MessageAdapter(MessageActivity.this, pictogramsToSend);
-			HorizontialListView newMessageLayout = (HorizontialListView)findViewById(R.id.newMessage);
-			newMessageLayout.setAdapter(newMessageAdapter);
-		} else {
-			newMessageAdapter.updateView(pictogramsToSend);
-		}*/
-		
-		//method is called first time
+
 		if(activeUserName == null){
 			View view = findViewById(R.id.container);
 			view.setVisibility(View.VISIBLE);
@@ -1047,30 +730,12 @@ public List<String[]> filterMessages(JSONArray messages) throws JSONException{
 				Pictogram pic = ((GridViewHolder)view.getTag()).getPictogram(); //was set in adapter
 				String picRuName  = NameManager.getInstance().getFileRuName(pic.getPath());
 				addImageNameToSendMessages(picRuName);
-				
-				//for gridview
-				/*pictogramsToSend.add(pic);
-				newMessageAdapter.updateView(pictogramsToSend);
-				final HorizontialListView newMessageLayout = (HorizontialListView)findViewById(R.id.newMessage);
-				newMessageLayout.post(new Runnable() {
-					@Override
-					public void run() {
-						//scroll
-						newMessageLayout.setSelection(pictogramsToSend.size());
-						if(pictogramsToSend.size() > getResources().getInteger(R.integer.new_message_icons_count)){
-							newMessageLayout.setSelection(pictogramsToSend.size());
-							//newMessageLayout.scrollTo(pictogramsToSend.size());
-						}
-					}
-				});*/
-				
+								
 				final LinearLayout piktogramsLayout = (LinearLayout) findViewById(R.id.linearLayout1);
 				ImageLoader imageLoader = ImageLoader.getInstance();
 				imageLoader.displayImage(pic.getPathWithAssests(), image, new SimpleImageLoadingListener() {
 					@Override
 					public void onLoadingComplete(String imageUri, View view, Bitmap loadedImage) {
-						//BitmapDrawable bd = new BitmapDrawable(getResources(), loadedImage);
-						//((ImageView)view).setBackground(bd);
 						piktogramsLayout.addView(image);
 						HorizontalScrollView hView = (HorizontalScrollView)findViewById(R.id.new_mess_scroll);
 						scrollRight(hView);
@@ -1080,11 +745,7 @@ public List<String[]> filterMessages(JSONArray messages) throws JSONException{
 			}
 		};
 	}
-	
-	 /*public void onSectionAttached(int number) {
-		 
-	 }
-	 */
+
 	
 	//------------------Async tasks-------------//
 	
@@ -1110,32 +771,7 @@ public List<String[]> filterMessages(JSONArray messages) throws JSONException{
 			//LinearLayout firstLevelGorups = (LinearLayout)findViewById(R.id.linearLayout_groups);
 			GridView firstLevelGorups = (GridView)findViewById(R.id.firstLevelGroups_view);
 			updateFirstLevelGroupAdapter(firstLevelGorups, pManager.getFirstLevelGroups());
-			
-			//create view for first level groups
-			/*for(GroupPictogram pic : pManager.getFirstLevelGroups()){
-				Button groupBtn = new Button(MessageActivity.this);
-				String ruName = nManager.getGroupRuName(pic.getPath());
-				groupBtn.setText(ruName);
-				int fontSize = (int)getResources().getDimension(R.dimen.button_font_size);
-				groupBtn.setTextSize(TypedValue.COMPLEX_UNIT_PX, fontSize);
-				groupBtn.setBackgroundResource(R.drawable.group_button_effect);
-				groupBtn.setTag(pic);
-				LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
-	                    LayoutParams.MATCH_PARENT,
-	                    LayoutParams.MATCH_PARENT, 1.0f);
-				//params.setMargins(2, 0, 2, 0);
-				groupBtn.setLayoutParams(params);
-				groupBtn.setOnClickListener(new OnClickListener() {
-					@Override
-					public void onClick(View v) {
-						GroupPictogram pic = ((GroupPictogram)v.getTag());
-						updateAdapters(pic.getInnerPictograms());
-					}
-				});
-				UIUtil.addGroupIconToButton(groupBtn, pic, getResources());
-				firstLevelGorups.addView(groupBtn);
-			}*/
-			
+						
 		}
 	}
 	//------------------End of Async tasks-------------//	
@@ -1151,7 +787,6 @@ public List<String[]> filterMessages(JSONArray messages) throws JSONException{
 					updateAdapters(gp.getInnerPictograms());
 				}
 			});
-			//clicks first element
 			groupView.performItemClick(groupView.getAdapter().getView(0, null, null), 
 					0, groupView.getAdapter().getItemId(0));
 			
@@ -1194,16 +829,6 @@ public List<String[]> filterMessages(JSONArray messages) throws JSONException{
 					updatedateGridViewAdapter(gp.getInnerPictograms());
 				}
 			});
-			//not allow to scroll
-			/*subGroupsView.setOnTouchListener(new View.OnTouchListener() {
-				@Override
-				public boolean onTouch(View v, MotionEvent event) {
-					if(event.getAction() == MotionEvent.ACTION_MOVE){
-			            return true;
-			        }
-			        return false;
-				}
-			});*/
 			
 		} else {
 			subGroupAdapter.updateView(pictograms);
@@ -1216,36 +841,7 @@ public List<String[]> filterMessages(JSONArray messages) throws JSONException{
 			if(gridViewAdapter == null){
 				gridViewAdapter = new GridViewAdapter(MessageActivity.this, MessageActivity.this, pictograms);
 				pictogramsGridView.setAdapter(gridViewAdapter);
-				//Not allowed for imageButton 
-				//must be changed to ImageView
-				/*pictogramsGridView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-					@Override
-					public void onItemClick(AdapterView<?> parent, View view,int position, long id) {
-						Pictogram pic = (Pictogram)pictogramsGridView.getItemAtPosition(position);
-						
-						
-						LinearLayout piktogramsLayout = (LinearLayout) findViewById(R.id.linearLayout1);
-						ImageView image = new ImageView(MessageActivity.this);
 
-						String picRuName = NameManager.getInstance().getFileRuName(pic.getPath());
-						addImageNameToSendMessages(picRuName);
-
-						//maybe change to tag, because if image in message part scales
-						//it affects to button
-						
-						ImageLoader imageLoader = ImageLoader.getInstance();
-						imageLoader.displayImage(pic.getPathWithAssests(), image, new SimpleImageLoadingListener() {
-							@Override
-							public void onLoadingComplete(String imageUri, View view, Bitmap loadedImage) {
-								BitmapDrawable bd = new BitmapDrawable(getResources(), loadedImage);
-								((ImageView)view).setBackground(bd);
-							}
-						});
-						piktogramsLayout.addView(image);
-						Log.e("asd", "asd");
-						
-					}
-				});*/
 			} else {
 				gridViewAdapter.updateView(pictograms);
 			}
@@ -1255,11 +851,8 @@ public List<String[]> filterMessages(JSONArray messages) throws JSONException{
 					pictogramsGridView.setSelection(0);//moothScrollToPosition(0);
 				}
 			});
-			//pictogramsGridView.smoothScrollToPosition(0);
-			//pictogramsGridView.smoothScrollToPositionFromTop(0, 0, 200);
 			
 		}
-	
 	
 	private void initImageLoader(){
 		//Get the imageloader.

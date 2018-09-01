@@ -17,7 +17,7 @@ public class Pictogram  implements Comparable<Pictogram>{
 	
 	private float number = 0;
 	
-	private BitmapDrawable icon;
+	//private BitmapDrawable icon;
 	
 	public Pictogram(String path){
 		this.path = path;
